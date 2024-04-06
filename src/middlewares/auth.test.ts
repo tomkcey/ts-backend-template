@@ -2,9 +2,6 @@ import supertest from "supertest";
 import { app } from "../app";
 import { auth } from "./auth";
 import { config } from "../utils/config";
-import { limiter } from "./limiting";
-
-afterAll(async () => limiter.clear());
 
 describe(auth.name, () => {
 	let mockApp = supertest(app.callback());

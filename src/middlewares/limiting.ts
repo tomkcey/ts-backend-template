@@ -1,71 +1,165 @@
 import Koa from "koa";
 import { config } from "../utils/config";
-import { TooManyRequestsError } from "../utils/errors";
+import { InternalServerError, TooManyRequestsError } from "../utils/errors";
+import { MaybePromise } from "../utils/async";
 
-type Item = [number, NodeJS.Timeout | null, NodeJS.Timeout | null];
+type Count = [number, Date, Date | null];
 
-export class Limiter {
-	protected cache: Map<string, Item> = new Map();
+interface Cache<T> {
+	get(key: string): MaybePromise<T | undefined>;
+	set(key: string, value: T): MaybePromise<Cache<T>>;
+	clear(): MaybePromise<void>;
+	keys(): IterableIterator<string>;
+}
 
-	/**
-	 * Middleware to limit the number of requests from a single IP address.
-	 */
-	public async run(ctx: Koa.Context, next: Koa.Next) {
-		const cacheHit = this.cache.get(ctx.ip);
+enum ExecutorResult {
+	Passthrough,
+	Limited,
+}
 
-		if (cacheHit) {
-			const [count, timer, banTimer] = cacheHit;
+type Subscriber = (
+	count: Count,
+	counter: RateLimiter,
+	key: string,
+	now: Date,
+) => Promise<boolean>;
 
-			if (count < config.rateLimit.nReq) {
-				this.cache.set(ctx.ip, [count + 1, timer, banTimer]);
-				return next();
-			}
+/**
+ * The cache parameter allows dependency injection. It handles sync and async operations.
+ *
+ * The subscribers parameter allows adding custom logic to the rate limiter.
+ * It is an array of functions that take the count, the rate limiter instance, the key, and the current date as arguments.
+ * It returns a promise that resolves to a boolean.
+ * If the return value is true, the rate limiter will allow the request to pass.
+ * If the return value is false, the rate limiter will block the request.
+ *
+ * @example
+ * class CustomCache<T> implements Cache<T> {
+ *		private cache: Record<string, T> = {};
+ *
+ *		async get(key: string): Promise<T | undefined> {
+ *			return new Promise((resolve) => {
+ *				return setTimeout(() => {
+ *					return resolve(this.cache[key]);
+ *				}, 250);
+ *			});
+ *		}
+ *
+ *		async set(key: string, value: T): Promise<Cache<T>> {
+ *			return new Promise((resolve) => {
+ *				return setTimeout(() => {
+ *					this.cache[key] = value;
+ *					return resolve(this);
+ *				}, 250);
+ *			});
+ *		}
+ *
+ *		async clear(): Promise<void> {
+ *			for (const key in this.cache) {
+ *				await new Promise<void>((res) => {
+ *					setTimeout(() => {
+ *						delete this.cache[key];
+ *						return res();
+ *					}, 250);
+ *				});
+ *			}
+ *		}
+ *
+ *		*keys(): IterableIterator<string> {
+ *			for (const key in this.cache) {
+ *				yield key;
+ *			}
+ *		}
+ *}
+ */
+export class RateLimiter {
+	constructor(
+		protected cache: Cache<Count> = new Map<string, Count>(),
+		protected subscribers: Subscriber[] = [],
+	) {}
 
-			const newBanTimer = setTimeout(() => {
-				if (timer) clearTimeout(timer);
-				if (banTimer) clearTimeout(banTimer);
+	public async middleware(ctx: Koa.Context, next: Koa.Next) {
+		const result = await this.execute(ctx.ip);
 
-				this.cache.delete(ctx.ip);
-			}, config.rateLimit.duration);
+		if (result === ExecutorResult.Passthrough) {
+			return next();
+		}
 
-			this.cache.set(ctx.ip, [count, timer, newBanTimer]);
-
+		if (result === ExecutorResult.Limited) {
 			const error = new TooManyRequestsError();
 			return error.httpRespond(ctx);
 		}
 
-		const newTimer = setTimeout(() => {
-			const cacheHit = this.cache.get(ctx.ip);
-			if (!cacheHit) {
-				return;
-			}
-
-			const [_, timer, banTimer] = cacheHit;
-
-			if (timer) clearTimeout(timer);
-			if (banTimer) clearTimeout(banTimer);
-
-			this.cache.delete(ctx.ip);
-		}, config.rateLimit.duration);
-
-		this.cache.set(ctx.ip, [1, newTimer, null]);
-
-		await next();
+		const error = new InternalServerError();
+		return error.httpRespond(ctx);
 	}
 
-	public async clear() {
-		for (const [_, timer, banTimer] of this.cache.values()) {
-			if (timer) {
-				clearTimeout(timer);
-			}
+	public async get(ip: string): Promise<Count | undefined> {
+		return this.cache.get(ip);
+	}
 
-			if (banTimer) {
-				clearTimeout(banTimer);
+	public async set(ip: string, count: Count): Promise<Cache<Count>> {
+		return this.cache.set(ip, count);
+	}
+
+	public async clear(): Promise<void> {
+		return this.cache.clear();
+	}
+
+	public subscribe(subscriber: Subscriber): RateLimiter {
+		this.subscribers.push(subscriber);
+		return this;
+	}
+
+	private async execute(ip: string): Promise<ExecutorResult> {
+		const hit = await this.get(ip);
+
+		const now = new Date();
+
+		if (hit) {
+			for (const subscriber of this.subscribers) {
+				const canContinue = await subscriber(hit, this, ip, now);
+				if (!canContinue) {
+					return ExecutorResult.Limited;
+				}
 			}
+		} else {
+			await this.set(ip, [1, new Date(now.getTime() + 1000), null]);
 		}
 
-		this.cache.clear();
+		return ExecutorResult.Passthrough;
 	}
 }
 
-export const limiter = new Limiter();
+export const rateLimiter = new RateLimiter()
+	.subscribe(async (count, counter, key, now) => {
+		const [_, _rd, banDate] = count;
+		if (banDate) {
+			if (now >= banDate) {
+				await counter.set(key, [
+					1,
+					new Date(now.getTime() + 1000),
+					null,
+				]);
+				return true;
+			}
+			return false;
+		}
+		return true;
+	})
+	.subscribe(async (c, counter, key, now) => {
+		const [count, renewDate, banDate] = c;
+		if (now >= renewDate) {
+			await counter.set(key, [
+				1,
+				new Date(now.getTime() + 1000),
+				banDate,
+			]);
+			return true;
+		}
+		if (count < config.rateLimit.nReq) {
+			await counter.set(key, [count + 1, renewDate, banDate]);
+			return true;
+		}
+		return false;
+	});

@@ -1,12 +1,10 @@
 import supertest, { Response } from "supertest";
 import { app } from "../app";
 import { config } from "../utils/config";
-import { Limiter, limiter } from "./limiting";
+import { RateLimiter } from "./limiting";
 import { sequential } from "../utils/async";
 
-afterAll(async () => limiter.clear());
-
-describe(Limiter.name, () => {
+describe(RateLimiter.name, () => {
 	let mockApp = supertest(app.callback());
 
 	it("returns 429 Too Many Requests when the rate limit has been reached, and the target's route usual return when the ban timer ends", async () => {
