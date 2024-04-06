@@ -18,8 +18,9 @@ jobs:
             - name: Run tests
               run: npm run test
               env:
-                  NODE_ENV: "development"
+                  NODE_ENV: "test"
                   PORT: "8000"
                   API_KEY: "test"
+                  API_NAME: "test"
                   RATE_LIMIT_DURATION_MS: 1000
                   RATE_LIMIT_MAX_REQUESTS: 5

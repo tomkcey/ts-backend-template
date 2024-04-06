@@ -16,4 +16,6 @@ module.exports = {
 	coveragePathIgnorePatterns: ["src/index.ts"],
 
 	maxWorkers: "25%",
+
+	setupFilesAfterEnv: ["<rootDir>/setup-jest.js"],
 };
