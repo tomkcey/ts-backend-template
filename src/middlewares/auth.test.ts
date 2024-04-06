@@ -15,7 +15,9 @@ describe(auth.name, () => {
 	});
 
 	it("returns 401 Unauthorized when the wrong api key provided", async () => {
-		const response = await mockApp.get("/ping").set("x-api-key", "test");
+		const response = await mockApp
+			.get("/ping")
+			.set("x-api-key", config.apiKey + "willfail");
 		expect(response.statusCode).toEqual(401);
 	});
 
