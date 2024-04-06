@@ -2,6 +2,5 @@
 
 ### Wishlist
 
--   OTLP
 -   Find a stateless solution to rate limiting
 -   OpenAPI

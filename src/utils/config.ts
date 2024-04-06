@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const config = {
+	apiName: ensureKey("API_NAME"),
 	apiKey: ensureKey("API_KEY"),
 	env: process.env.NODE_ENV ?? "development",
 	port: process.env.PORT ?? 3000,
