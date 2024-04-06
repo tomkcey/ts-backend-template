@@ -1,7 +1,7 @@
 {
 	"name": "koa",
-	"version": "1.0.0",
-	"description": "",
+	"version": "0.1.0",
+	"description": "HTTP server template using Koa",
 	"main": "index.js",
 	"scripts": {
 		"test": "jest",
@@ -9,9 +9,13 @@
 		"build": "tsc",
 		"start": "node dist/index.js"
 	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
+	"keywords": [
+		"koa",
+		"http",
+		"server"
+	],
+	"author": "Thomas Caissie <tomkcey@gmail.com> (https://github.com/tomkcey)",
+	"license": "UNLICENSED",
 	"devDependencies": {
 		"@types/jest": "^29.5.12",
 		"@types/koa": "^2.15.0",

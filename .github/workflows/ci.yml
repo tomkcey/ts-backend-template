@@ -1,0 +1,25 @@
+name: ci
+
+on: push
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20.x"
+            - name: Install dependencies
+              run: npm i
+            - name: Build application
+              run: npm run build
+            - name: Run tests
+              run: npm run test
+              env:
+                  NODE_ENV: "development"
+                  PORT: "8000"
+                  API_KEY: "test"
+                  RATE_LIMIT_DURATION_MS: 1000
+                  RATE_LIMIT_MAX_REQUESTS: 5

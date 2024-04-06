@@ -7,6 +7,9 @@ type Item = [number, NodeJS.Timeout | null, NodeJS.Timeout | null];
 export class Limiter {
 	protected cache: Map<string, Item> = new Map();
 
+	/**
+	 * Middleware to limit the number of requests from a single IP address.
+	 */
 	public async run(ctx: Koa.Context, next: Koa.Next) {
 		const cacheHit = this.cache.get(ctx.ip);
 

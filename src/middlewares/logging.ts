@@ -1,6 +1,9 @@
 import Koa from "koa";
 import { logger } from "../utils/logging";
 
+/**
+ * Middleware to log the incoming request and outgoing response with duration in milliseconds.
+ */
 export async function log(ctx: Koa.Context, next: Koa.Next) {
 	const s = new Date();
 	logger.info(`${ctx.method} ${ctx.url}`);
