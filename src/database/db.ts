@@ -1,30 +1,15 @@
 import { AsyncLocalStorage } from "async_hooks";
 
-type TransactionScope = "local" | "global";
-
 export const transactionStore = new AsyncLocalStorage<Executor>();
 
 export interface Executor {
-	/**
-	 * If the current context holds a transaction client, use it.
-	 */
 	query<T, U = string>(statement: U): Promise<T>;
-	/**
-	 * A globally scoped transaction would use the AsyncLocalStorage to store the transaction client and reuse it in children scopes
-	 */
-	transaction<U>(
-		fn: (executor: Executor) => Promise<U>,
-		scope: TransactionScope,
-	): Promise<U>;
+	transaction<U>(fn: (executor: Executor) => Promise<U>): Promise<U>;
 }
 
 type DatabaseOptions = {
 	list?<T>(result: unknown): T[];
 	unique?<T>(result: unknown): T;
-};
-
-type TransactionOptions = {
-	scope: TransactionScope;
 };
 
 export class Database<T, U = string> {
@@ -70,9 +55,8 @@ export class Database<T, U = string> {
 	 */
 	public async transaction<V>(
 		fn: (executor: Executor) => Promise<V>,
-		options: TransactionOptions = { scope: "local" },
 	): Promise<V> {
-		return this.executor.transaction(fn, options.scope);
+		return this.executor.transaction(fn);
 	}
 
 	/**

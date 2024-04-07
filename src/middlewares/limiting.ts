@@ -1,16 +1,9 @@
 import Koa from "koa";
 import { config } from "../utils/config";
 import { InternalServerError, TooManyRequestsError } from "../utils/errors";
-import { MaybePromise } from "../utils/async";
+import { Cache } from "../cache/cache";
 
 type Count = [number, Date, Date | null];
-
-interface Cache<T> {
-	get(key: string): MaybePromise<T | undefined>;
-	set(key: string, value: T): MaybePromise<Cache<T>>;
-	clear(): MaybePromise<void>;
-	keys(): IterableIterator<string>;
-}
 
 enum ExecutorResult {
 	Passthrough,
