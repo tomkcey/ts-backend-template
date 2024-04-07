@@ -1,7 +1,3 @@
-import { AsyncLocalStorage } from "async_hooks";
-
-export const transactionStore = new AsyncLocalStorage<Executor>();
-
 export interface Executor {
 	query<T, U = string>(statement: U): Promise<T>;
 	transaction<U>(fn: (executor: Executor) => Promise<U>): Promise<U>;
