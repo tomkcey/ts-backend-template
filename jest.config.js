@@ -17,5 +17,5 @@ module.exports = {
 
 	maxWorkers: "25%",
 
-	setupFilesAfterEnv: ["<rootDir>/setup-jest.js"],
+	setupFilesAfterEnv: ["<rootDir>/src/test/setup-jest.ts"],
 };
