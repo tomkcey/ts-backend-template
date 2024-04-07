@@ -6,6 +6,6 @@ export interface Executor<T, U> {
 export abstract class Database<T, U, V> {
 	constructor(protected executor: Executor<T, U>) {}
 
-	public abstract list(statement: U): Promise<V[]>;
-	public abstract unique(statement: U): Promise<V | undefined>;
+	protected abstract list(statement: U): Promise<V[]>;
+	protected abstract unique(statement: U): Promise<V | undefined>;
 }
