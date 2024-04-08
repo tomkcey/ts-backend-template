@@ -11,6 +11,8 @@ export const config = {
 		duration: parseInt(ensureKey("RATE_LIMIT_DURATION_MS"), 10),
 		nReq: parseInt(ensureKey("RATE_LIMIT_MAX_REQUESTS"), 10),
 	},
+	redis: { url: ensureKey("REDIS_URL") },
+	pg: { url: ensureKey("PG_URL") },
 } as const;
 
 function ensureKey(key: string): string {
