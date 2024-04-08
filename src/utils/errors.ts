@@ -51,6 +51,13 @@ export class NotFoundError extends ServerError {
 	}
 }
 
+export class BadRequestError extends ServerError {
+	private static readonly code = constants.HTTP_STATUS_BAD_REQUEST;
+	constructor(details?: unknown) {
+		super("Bad Request", BadRequestError.code, details);
+	}
+}
+
 export function isServerError(error: unknown): error is ServerError {
 	return error instanceof ServerError;
 }
