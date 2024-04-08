@@ -71,7 +71,7 @@ import { MaybePromise } from "../utils/async";
  */
 export interface Cache<T> {
 	get(key: string): MaybePromise<T | undefined>;
-	set(key: string, value: T): MaybePromise<Cache<T>>;
+	set(key: string, value: T, expiration?: number): MaybePromise<Cache<T>>;
 	clear(): MaybePromise<void>;
 	keys(): IterableIterator<string> | AsyncIterableIterator<string>;
 }

@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { getRedisCache } from "./redis";
 import { sequential } from "../utils/async";
+import { sleep } from "../test/utils";
 
 describe(getRedisCache.name, () => {
 	afterAll(async () => {
@@ -23,7 +24,7 @@ describe(getRedisCache.name, () => {
 
 		const resultBeforeExpiration = await client.get(KEY);
 
-		await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+		await sleep(1100);
 		const resultAfterExpiration = await client.get(KEY);
 
 		expect(resultBeforeExpiration).toEqual(COUNTER);

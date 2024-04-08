@@ -1,7 +1,7 @@
 import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { logger } from "../utils/logging";
 
-export class Orchestrator {
+class Orchestrator {
 	private containers: Record<string, StartedTestContainer> = {};
 
 	public async add(name: string, image: GenericContainer) {
@@ -19,3 +19,7 @@ export class Orchestrator {
 }
 
 export const orchestrator = new Orchestrator();
+
+export async function sleep(ms: number) {
+	await new Promise<void>((resolve) => setTimeout(resolve, ms));
+}

@@ -1,7 +1,7 @@
 import { rateLimiter } from "../middlewares/limiting";
 
-beforeAll(async () => {
+beforeAll(() => {
 	process.env.NODE_ENV = "test";
 });
 
-afterEach(() => rateLimiter.clear());
+afterEach(async () => rateLimiter.clear());
