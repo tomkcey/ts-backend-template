@@ -23,7 +23,7 @@ describe(RedisCache.name, () => {
 
 		const resultBeforeExpiration = await cache.get(KEY);
 
-		await sleep(1000);
+		await sleep(1100);
 
 		const resultAfterExpiration = await cache.get(KEY);
 
