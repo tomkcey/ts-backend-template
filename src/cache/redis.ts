@@ -3,7 +3,7 @@ import { Cache } from "./cache";
 import { logger } from "../utils/logging";
 import { config } from "../utils/config";
 
-class RedisCache implements Cache<number> {
+export class RedisCache implements Cache<number> {
 	constructor(protected client: RedisClientType) {
 		client.on("error", (err) => {
 			logger.error(JSON.stringify(err));
@@ -45,23 +45,25 @@ class RedisCache implements Cache<number> {
 	}
 }
 
-let cache: RedisCache | null = null;
+export namespace RedisCache {
+	let cache: RedisCache | null = null;
 
-async function cleanup() {
-	if (cache) {
-		await cache.disconnect();
-		cache = null;
-	}
-}
-
-export async function getRedisCache() {
-	if (!cache) {
-		const client: RedisClientType = createClient({
-			url: config.redis.url,
-		});
-		await client.connect();
-		cache = new RedisCache(client);
+	export async function cleanup() {
+		if (cache) {
+			await cache.disconnect();
+			cache = null;
+		}
 	}
 
-	return { cache, cleanup };
+	export async function getCache() {
+		if (!cache) {
+			const client: RedisClientType = createClient({
+				url: config.redis.url,
+			});
+			await client.connect();
+			cache = new RedisCache(client);
+		}
+
+		return cache;
+	}
 }

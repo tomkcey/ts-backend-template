@@ -1,24 +1,23 @@
 import { randomUUID } from "crypto";
-import { getRedisCache } from "./redis";
+import { RedisCache } from "./redis";
 import { sequential } from "../utils/async";
 import { sleep } from "../test/utils";
 
-describe(getRedisCache.name, () => {
+describe(RedisCache.name, () => {
 	beforeEach(async () => {
-		const { cache } = await getRedisCache();
+		const cache = await RedisCache.getCache();
 		await cache.clear();
 	});
 
 	afterEach(async () => {
-		const { cleanup } = await getRedisCache();
-		await cleanup();
+		await RedisCache.cleanup();
 	});
 
 	it("returns a value if one was assigned to provided key and not yet expired", async () => {
 		const KEY = randomUUID();
 		const COUNTER = 0;
 
-		const { cache } = await getRedisCache();
+		const cache = await RedisCache.getCache();
 
 		await cache.set(KEY, COUNTER, 1);
 
@@ -35,7 +34,7 @@ describe(getRedisCache.name, () => {
 	it("returns the keys sequentially", async () => {
 		const keys = Array.from({ length: 10 }, () => randomUUID());
 
-		const { cache } = await getRedisCache();
+		const cache = await RedisCache.getCache();
 
 		await sequential(keys, async (key) => cache.set(key, 1));
 
