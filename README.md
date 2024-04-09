@@ -3,4 +3,4 @@
 ### Roadmap
 
 -   OpenAPI
--   Message broker
+-   Proper error handling on AMQP broker

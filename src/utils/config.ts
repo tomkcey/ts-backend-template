@@ -13,6 +13,7 @@ export const config = {
 	},
 	redis: { url: ensureKey("REDIS_URL") },
 	pg: { url: ensureKey("PG_URL") },
+	amqp: { url: ensureKey("AMQP_URL") },
 } as const;
 
 function ensureKey(key: string): string {
