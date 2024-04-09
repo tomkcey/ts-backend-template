@@ -1,5 +1,5 @@
 import { Broker, Consumer, Producer } from "./broker";
-import { logger } from "../utils/logging";
+import { logger } from "../../utils/logging";
 import EventEmitter from "events";
 
 class Emitter extends EventEmitter<Record<Broker.Queue, unknown[]>> {

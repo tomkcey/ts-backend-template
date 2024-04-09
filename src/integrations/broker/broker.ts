@@ -1,4 +1,4 @@
-import { MaybePromise } from "../utils/async";
+import { MaybePromise } from "../../utils/async";
 
 export interface Broker<T, U> {
 	connect(options?: U): MaybePromise<T>;

@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { RedisCache } from "./redis";
-import { sequential } from "../utils/async";
-import { sleep } from "../test/utils";
+import { sequential } from "../../utils/async";
+import { sleep } from "../../test/utils";
 
 describe(RedisCache.name, () => {
 	beforeEach(async () => {

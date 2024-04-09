@@ -4,7 +4,7 @@ import { auth } from "./auth";
 import { config } from "../utils/config";
 import TestAgent from "supertest/lib/agent";
 import { RateLimiter } from "./limiting";
-import { RedisCache } from "../cache/redis";
+import { RedisCache } from "../integrations/cache/redis";
 
 describe(auth.name, () => {
 	let mockApp: TestAgent;

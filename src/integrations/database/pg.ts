@@ -1,7 +1,7 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
 import { SQLStatement } from "sql-template-strings";
 import { Database, Executor } from "./db";
-import { config } from "../utils/config";
+import { config } from "../../utils/config";
 
 const pool = new Pool({ connectionString: config.pg.url });
 

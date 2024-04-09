@@ -1,5 +1,5 @@
-import { config } from "../utils/config";
-import { logger } from "../utils/logging";
+import { config } from "../../utils/config";
+import { logger } from "../../utils/logging";
 import { Broker, Consumer, Producer } from "./broker";
 import { Connection, ConsumeMessage, Options, connect } from "amqplib";
 

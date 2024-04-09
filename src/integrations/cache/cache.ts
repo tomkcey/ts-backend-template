@@ -1,4 +1,4 @@
-import { MaybePromise } from "../utils/async";
+import { MaybePromise } from "../../utils/async";
 
 export interface Cache<T> {
 	get(key: string): MaybePromise<T | undefined>;

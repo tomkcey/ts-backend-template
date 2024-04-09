@@ -5,7 +5,7 @@ import { RateLimiter } from "./limiting";
 import { sequential } from "../utils/async";
 import TestAgent from "supertest/lib/agent";
 import { sleep } from "../test/utils";
-import { RedisCache } from "../cache/redis";
+import { RedisCache } from "../integrations/cache/redis";
 
 describe(RateLimiter.name, () => {
 	let mockApp: TestAgent;

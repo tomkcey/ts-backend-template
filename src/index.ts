@@ -3,7 +3,7 @@ import { otlpSdk } from "./utils/otlp";
 import { config } from "./utils/config";
 import { logger } from "./utils/logging";
 import { RateLimiter } from "./middlewares/limiting";
-import { InMemoryCache } from "./cache/in-mem-cache";
+import { InMemoryCache } from "./integrations/cache/in-mem-cache";
 
 async function main() {
 	// Switch to another Cache<number> implementation at your leisure.

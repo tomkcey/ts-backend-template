@@ -1,7 +1,7 @@
 import Koa from "koa";
 import { config } from "../utils/config";
 import { InternalServerError, TooManyRequestsError } from "../utils/errors";
-import { Cache } from "../cache/cache";
+import { Cache } from "../integrations/cache/cache";
 
 enum ExecutorResult {
 	Passthrough,

@@ -4,11 +4,11 @@ import {
 	BadRequestError,
 	InternalServerError,
 	NotFoundError,
-} from "../utils/errors";
+} from "../../utils/errors";
 import { QueryResultRow } from "pg";
 import { Database } from "./db";
 import { randomUUID } from "crypto";
-import { sequential } from "../utils/async";
+import { sequential } from "../../utils/async";
 
 type Achievement = {
 	id: string;

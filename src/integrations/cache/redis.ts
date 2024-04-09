@@ -1,7 +1,7 @@
 import { createClient, RedisClientType } from "redis";
 import { Cache } from "./cache";
-import { logger } from "../utils/logging";
-import { config } from "../utils/config";
+import { logger } from "../../utils/logging";
+import { config } from "../../utils/config";
 
 export class RedisCache implements Cache<number> {
 	constructor(protected client: RedisClientType) {
