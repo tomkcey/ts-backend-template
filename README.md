@@ -2,5 +2,10 @@
 
 ### Roadmap
 
--   OpenAPI
--   Proper error handling on AMQP broker
+#### Priority legend
+
+`L (Low), M (Medium), H (High)`
+
+-   [L] OpenAPI
+-   [L] Message TTL/Dead-Lettering on AMQP broker implementation
+-   [M] Remove excess cruft in `pg.test.ts`; the entities can be simpler
