@@ -1,10 +1,31 @@
 import supertest from "supertest";
-import { app } from "../app";
+import { bootstrap } from "../app";
 import { auth } from "./auth";
 import { config } from "../utils/config";
+import TestAgent from "supertest/lib/agent";
+import { getRedisRateLimiter } from "./limiting";
+import { getRedisCache } from "../cache/redis";
 
 describe(auth.name, () => {
-	let mockApp = supertest(app.callback());
+	let mockApp: TestAgent;
+
+	beforeEach(async () => {
+		const { redisCache } = await getRedisCache();
+		await redisCache.clear();
+
+		const { redisRateLimiter } = await getRedisRateLimiter();
+		const app = await bootstrap(redisRateLimiter);
+
+		mockApp = supertest(app.callback());
+	});
+
+	afterEach(async () => {
+		const { cleanupRedisRateLimiter } = await getRedisRateLimiter();
+		cleanupRedisRateLimiter();
+
+		const { cleanupRedisCache } = await getRedisCache();
+		await cleanupRedisCache();
+	});
 
 	it("returns 401 Unauthorized when no api key provided", async () => {
 		const response = await mockApp.get("/ping");

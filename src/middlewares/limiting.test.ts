@@ -1,11 +1,32 @@
-import supertest, { Response } from "supertest";
-import { app } from "../app";
+import supertest from "supertest";
+import { bootstrap } from "../app";
 import { config } from "../utils/config";
-import { RateLimiter } from "./limiting";
+import { RateLimiter, getRedisRateLimiter } from "./limiting";
 import { sequential } from "../utils/async";
+import TestAgent from "supertest/lib/agent";
+import { sleep } from "../test/utils";
+import { getRedisCache } from "../cache/redis";
 
 describe(RateLimiter.name, () => {
-	let mockApp = supertest(app.callback());
+	let mockApp: TestAgent;
+
+	beforeEach(async () => {
+		const { redisCache } = await getRedisCache();
+		await redisCache.clear();
+
+		const { redisRateLimiter } = await getRedisRateLimiter();
+		const app = await bootstrap(redisRateLimiter);
+
+		mockApp = supertest(app.callback());
+	});
+
+	afterEach(async () => {
+		const { cleanupRedisRateLimiter } = await getRedisRateLimiter();
+		cleanupRedisRateLimiter();
+
+		const { cleanupRedisCache } = await getRedisCache();
+		await cleanupRedisCache();
+	});
 
 	it("returns 429 Too Many Requests when the rate limit has been reached, and the target's route usual return when the ban timer ends", async () => {
 		const length = config.rateLimit.nReq + 1;
@@ -30,15 +51,8 @@ describe(RateLimiter.name, () => {
 			expect(response.statusCode).toEqual(429);
 		}
 
-		const response = await new Promise<Response>((resolve) =>
-			setTimeout(
-				() =>
-					mockApp
-						.get("/ping")
-						.set("x-api-key", config.apiKey)
-						.then((r) => resolve(r)),
-				config.rateLimit.duration,
-			),
+		const response = await sleep(config.rateLimit.durationInMs).then(() =>
+			mockApp.get("/ping").set("x-api-key", config.apiKey),
 		);
 
 		expect(response.statusCode).toEqual(204);

@@ -1,9 +1,13 @@
-import { app } from "./app";
+import { bootstrap } from "./app";
 import { otlpSdk } from "./utils/otlp";
 import { config } from "./utils/config";
 import { logger } from "./utils/logging";
+import { getInMemoryRateLimiter } from "./middlewares/limiting";
 
 async function main() {
+	const { inMemoryRateLimiter } = await getInMemoryRateLimiter();
+	const app = await bootstrap(inMemoryRateLimiter);
+
 	app.listen(config.port, () => {
 		logger.info(`Environment: ${config.env}`);
 		logger.info(`${config.apiName} listening on port ${config.port}`);
