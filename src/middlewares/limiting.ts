@@ -25,45 +25,6 @@ type Subscriber = (
  * It returns a promise that resolves to a boolean.
  * If the return value is true, the rate limiter will allow the request to pass.
  * If the return value is false, the rate limiter will block the request.
- *
- * @example
- * class CustomCache<T> implements Cache<T> {
- *		private cache: Record<string, T> = {};
- *
- *		async get(key: string): Promise<T | undefined> {
- *			return new Promise((resolve) => {
- *				return setTimeout(() => {
- *					return resolve(this.cache[key]);
- *				}, 250);
- *			});
- *		}
- *
- *		async set(key: string, value: T): Promise<Cache<T>> {
- *			return new Promise((resolve) => {
- *				return setTimeout(() => {
- *					this.cache[key] = value;
- *					return resolve(this);
- *				}, 250);
- *			});
- *		}
- *
- *		async clear(): Promise<void> {
- *			for (const key in this.cache) {
- *				await new Promise<void>((res) => {
- *					setTimeout(() => {
- *						delete this.cache[key];
- *						return res();
- *					}, 250);
- *				});
- *			}
- *		}
- *
- *		*keys(): IterableIterator<string> {
- *			for (const key in this.cache) {
- *				yield key;
- *			}
- *		}
- *}
  */
 export class RateLimiter {
 	constructor(
@@ -91,8 +52,12 @@ export class RateLimiter {
 		return this.cache.get(ip);
 	}
 
-	public async set(ip: string, count: Count): Promise<Cache<Count>> {
-		return this.cache.set(ip, count);
+	public async set(
+		ip: string,
+		count: Count,
+		expiration?: number,
+	): Promise<Cache<Count>> {
+		return this.cache.set(ip, count, expiration);
 	}
 
 	public async clear(): Promise<void> {
