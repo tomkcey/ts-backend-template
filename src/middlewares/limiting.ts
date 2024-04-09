@@ -3,18 +3,15 @@ import { config } from "../utils/config";
 import { InternalServerError, TooManyRequestsError } from "../utils/errors";
 import { Cache } from "../cache/cache";
 
-type Count = [number, Date, Date | null];
-
 enum ExecutorResult {
 	Passthrough,
 	Limited,
 }
 
-type Subscriber = (
-	count: Count,
-	counter: RateLimiter,
+type Subscriber<T, U = RateLimiter> = (
+	count: T,
+	executor: U,
 	key: string,
-	now: Date,
 ) => Promise<boolean>;
 
 /**
@@ -28,8 +25,8 @@ type Subscriber = (
  */
 export class RateLimiter {
 	constructor(
-		protected cache: Cache<Count> = new Map<string, Count>(),
-		protected subscribers: Subscriber[] = [],
+		protected cache: Cache<number> = new Map<string, number>(),
+		protected subscribers: Subscriber<number, RateLimiter>[] = [],
 	) {}
 
 	public async middleware(ctx: Koa.Context, next: Koa.Next) {
@@ -48,23 +45,23 @@ export class RateLimiter {
 		return error.httpRespond(ctx);
 	}
 
-	public async get(ip: string): Promise<Count | undefined> {
+	public async get(ip: string): Promise<number | undefined> {
 		return this.cache.get(ip);
 	}
 
 	public async set(
 		ip: string,
-		count: Count,
-		expiration?: number,
-	): Promise<Cache<Count>> {
-		return this.cache.set(ip, count, expiration);
+		count: number,
+		expirationInSeconds?: number,
+	): Promise<Cache<number>> {
+		return this.cache.set(ip, count, expirationInSeconds);
 	}
 
 	public async clear(): Promise<void> {
 		return this.cache.clear();
 	}
 
-	public subscribe(subscriber: Subscriber): RateLimiter {
+	public subscribe(subscriber: Subscriber<number, RateLimiter>): this {
 		this.subscribers.push(subscriber);
 		return this;
 	}
@@ -72,52 +69,52 @@ export class RateLimiter {
 	private async execute(ip: string): Promise<ExecutorResult> {
 		const hit = await this.get(ip);
 
-		const now = new Date();
-
 		if (hit) {
 			for (const subscriber of this.subscribers) {
-				const canContinue = await subscriber(hit, this, ip, now);
+				const canContinue = await subscriber(hit, this, ip);
 				if (!canContinue) {
 					return ExecutorResult.Limited;
 				}
 			}
 		} else {
-			await this.set(ip, [1, new Date(now.getTime() + 1000), null]);
+			await this.set(ip, 1, config.rateLimit.durationInMs / 1000);
 		}
 
 		return ExecutorResult.Passthrough;
 	}
 }
 
-export const rateLimiter = new RateLimiter()
-	.subscribe(async (count, counter, key, now) => {
-		const [_, _rd, banDate] = count;
-		if (banDate) {
-			if (now >= banDate) {
-				await counter.set(key, [
-					1,
-					new Date(now.getTime() + 1000),
-					null,
-				]);
-				return true;
-			}
-			return false;
+export namespace RateLimiter {
+	const store = new Set<string>();
+	let limiter: RateLimiter | null = null;
+
+	export function cleanup() {
+		limiter = null;
+	}
+
+	export function withCache(cache: Cache<number>): RateLimiter {
+		if (limiter) {
+			return limiter;
 		}
-		return true;
-	})
-	.subscribe(async (c, counter, key, now) => {
-		const [count, renewDate, banDate] = c;
-		if (now >= renewDate) {
-			await counter.set(key, [
-				1,
-				new Date(now.getTime() + 1000),
-				banDate,
-			]);
-			return true;
-		}
-		if (count < config.rateLimit.nReq) {
-			await counter.set(key, [count + 1, renewDate, banDate]);
-			return true;
-		}
-		return false;
-	});
+
+		limiter = new RateLimiter(cache)
+			.subscribe(async (_c, _e, key) => !store.has(key))
+			.subscribe(async (count, executor, key) => {
+				if (count < config.rateLimit.nReq) {
+					await executor.set(
+						key,
+						count + 1,
+						config.rateLimit.durationInMs / 1000,
+					);
+					return true;
+				}
+				store.add(key);
+				setTimeout(() => {
+					store.delete(key);
+				}, config.rateLimit.durationInMs);
+				return false;
+			});
+
+		return limiter;
+	}
+}

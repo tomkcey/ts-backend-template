@@ -2,7 +2,7 @@ import { GenericContainer } from "testcontainers";
 import { orchestrator } from "./utils";
 
 export default async function setup() {
-	process.env.PG_URL = "psql://test:test@localhost:5432/postgres";
+	process.env.PG_URL = "postgres://test:test@localhost:5432/postgres";
 	process.env.REDIS_URL = "redis://localhost:6379";
 
 	// Just to make the output more readable

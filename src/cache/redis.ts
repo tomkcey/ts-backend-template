@@ -6,7 +6,7 @@ import { config } from "../utils/config";
 class RedisCache implements Cache<number> {
 	constructor(protected client: RedisClientType) {
 		client.on("error", (err) => {
-			logger.error(err);
+			logger.error(JSON.stringify(err));
 		});
 	}
 
@@ -41,19 +41,27 @@ class RedisCache implements Cache<number> {
 	}
 
 	public async disconnect() {
-		await this.client.quit();
+		await this.client.disconnect();
 	}
 }
 
-let redisCache: RedisCache | null = null;
+let cache: RedisCache | null = null;
 
-export async function getRedisCache(): Promise<RedisCache> {
-	if (!redisCache) {
+async function cleanup() {
+	if (cache) {
+		await cache.disconnect();
+		cache = null;
+	}
+}
+
+export async function getRedisCache() {
+	if (!cache) {
 		const client: RedisClientType = createClient({
 			url: config.redis.url,
 		});
 		await client.connect();
-		redisCache = new RedisCache(client);
+		cache = new RedisCache(client);
 	}
-	return redisCache;
+
+	return { cache, cleanup };
 }

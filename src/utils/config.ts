@@ -8,7 +8,7 @@ export const config = {
 	env: process.env.NODE_ENV ?? "development",
 	port: process.env.PORT ?? 3000,
 	rateLimit: {
-		duration: parseInt(ensureKey("RATE_LIMIT_DURATION_MS"), 10),
+		durationInMs: parseInt(ensureKey("RATE_LIMIT_DURATION_MS"), 10),
 		nReq: parseInt(ensureKey("RATE_LIMIT_MAX_REQUESTS"), 10),
 	},
 	redis: { url: ensureKey("REDIS_URL") },

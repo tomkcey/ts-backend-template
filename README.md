@@ -4,7 +4,3 @@
 
 -   OpenAPI
 -   Message broker
-
-### Refactors
-
--   Rate limiter should take `Cache<number>`, and let the implementer handle timers separately.
