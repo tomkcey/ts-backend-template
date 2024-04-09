@@ -45,23 +45,23 @@ class RedisCache implements Cache<number> {
 	}
 }
 
-let redisCache: RedisCache | null = null;
+let cache: RedisCache | null = null;
 
-async function cleanupRedisCache() {
-	if (redisCache) {
-		await redisCache.disconnect();
-		redisCache = null;
+async function cleanup() {
+	if (cache) {
+		await cache.disconnect();
+		cache = null;
 	}
 }
 
 export async function getRedisCache() {
-	if (!redisCache) {
+	if (!cache) {
 		const client: RedisClientType = createClient({
 			url: config.redis.url,
 		});
 		await client.connect();
-		redisCache = new RedisCache(client);
+		cache = new RedisCache(client);
 	}
 
-	return { redisCache, cleanupRedisCache };
+	return { cache, cleanup };
 }

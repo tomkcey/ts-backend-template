@@ -3,28 +3,27 @@ import { bootstrap } from "../app";
 import { auth } from "./auth";
 import { config } from "../utils/config";
 import TestAgent from "supertest/lib/agent";
-import { getRedisRateLimiter } from "./limiting";
+import { RateLimiter } from "./limiting";
 import { getRedisCache } from "../cache/redis";
 
 describe(auth.name, () => {
 	let mockApp: TestAgent;
 
 	beforeEach(async () => {
-		const { redisCache } = await getRedisCache();
-		await redisCache.clear();
+		const { cache } = await getRedisCache();
+		await cache.clear();
 
-		const { redisRateLimiter } = await getRedisRateLimiter();
-		const app = await bootstrap(redisRateLimiter);
+		const limiter = RateLimiter.withCache(cache);
+		const app = await bootstrap(limiter);
 
 		mockApp = supertest(app.callback());
 	});
 
 	afterEach(async () => {
-		const { cleanupRedisRateLimiter } = await getRedisRateLimiter();
-		cleanupRedisRateLimiter();
+		RateLimiter.cleanup();
 
-		const { cleanupRedisCache } = await getRedisCache();
-		await cleanupRedisCache();
+		const { cleanup } = await getRedisCache();
+		await cleanup();
 	});
 
 	it("returns 401 Unauthorized when no api key provided", async () => {

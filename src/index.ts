@@ -2,11 +2,13 @@ import { bootstrap } from "./app";
 import { otlpSdk } from "./utils/otlp";
 import { config } from "./utils/config";
 import { logger } from "./utils/logging";
-import { getInMemoryRateLimiter } from "./middlewares/limiting";
+import { RateLimiter } from "./middlewares/limiting";
+import { inMemoryCache } from "./cache/in-mem-cache";
 
 async function main() {
-	const { inMemoryRateLimiter } = await getInMemoryRateLimiter();
-	const app = await bootstrap(inMemoryRateLimiter);
+	// Switch to another Cache<number> implementation at your leisure.
+	const limiter = RateLimiter.withCache(inMemoryCache);
+	const app = await bootstrap(limiter);
 
 	app.listen(config.port, () => {
 		logger.info(`Environment: ${config.env}`);

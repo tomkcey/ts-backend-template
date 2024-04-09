@@ -5,27 +5,28 @@ import { sleep } from "../test/utils";
 
 describe(getRedisCache.name, () => {
 	beforeEach(async () => {
-		const { redisCache } = await getRedisCache();
-		await redisCache.clear();
+		const { cache } = await getRedisCache();
+		await cache.clear();
 	});
 
 	afterEach(async () => {
-		const { cleanupRedisCache } = await getRedisCache();
-		await cleanupRedisCache();
+		const { cleanup } = await getRedisCache();
+		await cleanup();
 	});
 
 	it("returns a value if one was assigned to provided key and not yet expired", async () => {
 		const KEY = randomUUID();
 		const COUNTER = 0;
 
-		const { redisCache } = await getRedisCache();
+		const { cache } = await getRedisCache();
 
-		await redisCache.set(KEY, COUNTER, 1);
+		await cache.set(KEY, COUNTER, 1);
 
-		const resultBeforeExpiration = await redisCache.get(KEY);
+		const resultBeforeExpiration = await cache.get(KEY);
 
-		await sleep(1100);
-		const resultAfterExpiration = await redisCache.get(KEY);
+		await sleep(1000);
+
+		const resultAfterExpiration = await cache.get(KEY);
 
 		expect(resultBeforeExpiration).toEqual(COUNTER);
 		expect(resultAfterExpiration).toBeUndefined();
@@ -34,11 +35,11 @@ describe(getRedisCache.name, () => {
 	it("returns the keys sequentially", async () => {
 		const keys = Array.from({ length: 10 }, () => randomUUID());
 
-		const { redisCache } = await getRedisCache();
+		const { cache } = await getRedisCache();
 
-		await sequential(keys, async (key) => redisCache.set(key, 1));
+		await sequential(keys, async (key) => cache.set(key, 1));
 
-		for await (const key of redisCache.keys()) {
+		for await (const key of cache.keys()) {
 			expect(keys).toContain(key);
 		}
 	});
