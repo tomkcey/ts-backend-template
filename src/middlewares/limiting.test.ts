@@ -5,13 +5,13 @@ import { RateLimiter } from "./limiting";
 import { sequential } from "../utils/async";
 import TestAgent from "supertest/lib/agent";
 import { sleep } from "../test/utils";
-import { getRedisCache } from "../cache/redis";
+import { RedisCache } from "../cache/redis";
 
 describe(RateLimiter.name, () => {
 	let mockApp: TestAgent;
 
 	beforeEach(async () => {
-		const { cache } = await getRedisCache();
+		const cache = await RedisCache.getCache();
 		await cache.clear();
 
 		const limiter = RateLimiter.withCache(cache);
@@ -22,9 +22,7 @@ describe(RateLimiter.name, () => {
 
 	afterEach(async () => {
 		RateLimiter.cleanup();
-
-		const { cleanup } = await getRedisCache();
-		await cleanup();
+		await RedisCache.cleanup();
 	});
 
 	it("returns 429 Too Many Requests when the rate limit has been reached, and the target's route usual return when the ban timer ends", async () => {
