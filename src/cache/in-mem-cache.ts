@@ -1,6 +1,6 @@
 import { Cache } from "./cache";
 
-class InMemoryCache implements Cache<number> {
+export class InMemoryCache implements Cache<number> {
 	private cache: Map<string, number> = new Map();
 
 	public async get(key: string): Promise<number | undefined> {
@@ -31,5 +31,3 @@ class InMemoryCache implements Cache<number> {
 		}
 	}
 }
-
-export const inMemoryCache = new InMemoryCache();
