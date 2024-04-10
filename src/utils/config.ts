@@ -14,6 +14,12 @@ export const config = {
 	redis: { url: ensureKey("REDIS_URL") },
 	pg: { url: ensureKey("PG_URL") },
 	amqp: { url: ensureKey("AMQP_URL") },
+	minio: {
+		url: ensureKey("MINIO_URL"),
+		port: parseInt(ensureKey("MINIO_PORT"), 10),
+		accessKey: ensureKey("MINIO_ACCESS_KEY"),
+		secretKey: ensureKey("MINIO_SECRET_KEY"),
+	},
 } as const;
 
 function ensureKey(key: string): string {
