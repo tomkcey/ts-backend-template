@@ -16,7 +16,7 @@ export const config = {
 	amqp: { url: ensureKey("AMQP_URL") },
 	minio: {
 		url: ensureKey("MINIO_URL"),
-		port: ensureKey("MINIO_PORT"),
+		port: parseInt(ensureKey("MINIO_PORT"), 10),
 		accessKey: ensureKey("MINIO_ACCESS_KEY"),
 		secretKey: ensureKey("MINIO_SECRET_KEY"),
 	},

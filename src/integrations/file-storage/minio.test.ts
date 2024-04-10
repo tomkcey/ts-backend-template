@@ -4,7 +4,7 @@ import { createReadStream } from "fs";
 import path from "path";
 
 describe(MinioFileStorage.name, () => {
-	it("", async () => {
+	it("streams the file unto the bucket and streams it back in memory", async () => {
 		const message = "test";
 		const filename = "test.log";
 

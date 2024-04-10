@@ -38,7 +38,7 @@ export namespace MinioFileStorage {
 			accessKey: config.minio.accessKey,
 			secretKey: config.minio.secretKey,
 			endPoint: config.minio.url,
-			port: 9000,
+			port: config.minio.port,
 			useSSL: false,
 		});
 		return client;
