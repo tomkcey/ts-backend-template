@@ -15,6 +15,7 @@ export class Amqp implements Broker<Connection, Amqp.Options> {
 	}
 
 	public async disconnect() {
+		logger.info(`${this.constructor.name} disconnecting...`);
 		await Amqp.disconnect();
 	}
 }
@@ -34,6 +35,9 @@ class AmqpProducer extends Producer<Buffer, Connection> {
 	 * Convenience method.
 	 */
 	public async shutdown() {
+		logger.info(
+			`${this.constructor.name} shutting down producer on queue '${this.queue}'`,
+		);
 		return this.connection.close();
 	}
 }
@@ -61,6 +65,9 @@ class AmqpConsumer extends Consumer<Buffer, Connection> {
 	 * Convenience method.
 	 */
 	public async shutdown() {
+		logger.info(
+			`${this.constructor.name} shutting down consumer on queue '${this.queue}'`,
+		);
 		return this.connection.close();
 	}
 }
@@ -114,15 +121,13 @@ export namespace Amqp {
 	}
 
 	export async function disconnect() {
-		for (const [queue, producer] of producers.entries()) {
-			logger.info(`Shutting down producer on queue '${queue}'`);
+		for (const [_, producer] of producers.entries()) {
 			await producer.shutdown();
 		}
 
 		producers.clear();
 
-		for (const [queue, consumer] of consumers.entries()) {
-			logger.info(`Shutting down consumer on queue '${queue}'`);
+		for (const [_, consumer] of consumers.entries()) {
 			await consumer.shutdown();
 		}
 

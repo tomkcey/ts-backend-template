@@ -15,6 +15,7 @@ class Emitter extends EventEmitter<Record<Broker.Queue, unknown[]>> {
 
 	public clear() {
 		for (const queue in this.queues) {
+			logger.info(`${Emitter.name} clearing queue '${queue}'`);
 			this.queues[queue as Broker.Queue] = [];
 		}
 	}
@@ -32,6 +33,8 @@ export class MessageEmitter implements Broker<Emitter, {}> {
 	}
 
 	public disconnect(): void {
+		logger.info(`${MessageEmitter.name} disconnecting...`);
+		MessageEmitter.disconnect();
 		this.emitter.clear();
 	}
 }
@@ -44,13 +47,6 @@ class MessageEmitterProducer extends Producer<Buffer, Emitter> {
 	public send(message: Buffer) {
 		this.connection.push(this.queue, message);
 		this.connection.emit(this.queue);
-	}
-
-	/**
-	 * Convenience method.
-	 */
-	public shutdown() {
-		return this.connection.clear();
 	}
 }
 
@@ -70,13 +66,6 @@ class MessageEmitterConsumer extends Consumer<Buffer, Emitter> {
 				this.fn(message);
 			}
 		});
-	}
-
-	/**
-	 * Convenience method.
-	 */
-	public shutdown() {
-		return this.connection.clear();
 	}
 }
 
@@ -126,17 +115,17 @@ export namespace MessageEmitter {
 
 	export function disconnect() {
 		for (const [queue, producer] of producers.entries()) {
-			logger.info(`Shutting down producer on queue '${queue}'`);
-			producer.shutdown();
+			logger.info(
+				`${producer.constructor.name} shutting down producer on queue '${queue}'`,
+			);
+			producers.delete(queue);
 		}
-
-		producers.clear();
 
 		for (const [queue, consumer] of consumers.entries()) {
-			logger.info(`Shutting down consumer on queue '${queue}'`);
-			consumer.shutdown();
+			logger.info(
+				`${consumer.constructor.name} shutting down consumer on queue '${queue}'`,
+			);
+			consumers.delete(queue);
 		}
-
-		consumers.clear();
 	}
 }
