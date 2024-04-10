@@ -1,24 +1,38 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/tomkcey/koa-template/ci.yml?branch=master)
 
-### Roadmap
+## Debugging
 
-#### Priority legend
+### VS Code Debugger
 
-`L (Low), M (Medium), H (High)`
+In your `.vscode/launch.json` you can copy and paste the following block. It should work right out of the box.
 
--   [L] OpenAPI
--   [L] Message TTL/Dead-Lettering on AMQP broker implementation
--   [M] Remove excess cruft in `pg.test.ts`; the entities can be simpler
--   [M] Investigate why only emitter or amqp test spit out the logs for the `disconnect()`
--   [L] Investigate exactly which ports we need opened with Jaeger
--   [L] Database sharding, Read replica
--   [M] Neo4J
--   [L] Kubernetes instead-of/with docker-compose, as is or with Tilt?
--   [L] Investigate environemnt variables for PostgreSQL for targeting a specific database, but it has to be created on container startup otherwise nodejs client connection won't work
--   [H] File system file-storage implementation
+```json
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Koa API",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}/dist/index.js"
+		}
+	]
+}
+```
 
-### Notes
+### Testcontainers
 
--   If you want to output logs for `testcontainers`, input `DEBUG=testcontainers*` before the test command.
--   Some environment variables are overriden for tests, see `src/test/setup-global.ts`
--   If you want to bring up the whole infrastructure for testing locally, you can use `docker compose up --build`
+When you launch the jest runner, it will first setup some docker containers using testcontainers. Sometimes problems arise with those containers and you might want to see the logs. To output them in the terminal you can simply add `DEBUG=testcontainers` before the `npm run test` command.
+
+`DEBUG=testcontainers npm run test`
+
+## Notes
+
+### Environment variables
+
+All environment variables go in the `.env` file at root. However, for some tests it's important to override some of the values therein. That's why some of them are defined in `./src/test/setup-global.ts`
+
+### Infrastructure
+
+To bring the whole infrastructure up, you can either use the shell scripts in `./scripts/*.sh` individually, or the `docker-compose.yml` file with `docker compose up --build`.
