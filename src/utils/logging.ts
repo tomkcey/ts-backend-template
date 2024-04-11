@@ -1,5 +1,5 @@
 import { createLogger, transports, format } from "winston";
-import { store } from "../middlewares/tracing";
+import { store } from "../integrations/http/koa/middlewares/tracing";
 
 const { colorize, combine, printf, timestamp } = format;
 

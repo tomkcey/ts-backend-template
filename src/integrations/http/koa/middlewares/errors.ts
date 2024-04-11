@@ -1,6 +1,6 @@
 import Koa from "koa";
-import { InternalServerError, isServerError } from "../utils/errors";
-import { logger } from "../utils/logging";
+import { InternalServerError, isServerError } from "../../../../utils/errors";
+import { logger } from "../../../../utils/logging";
 
 /**
  * Centralized error handling middleware.

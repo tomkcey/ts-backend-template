@@ -1,20 +1,8 @@
-import { bootstrap } from "./app";
 import { otlpSdk } from "./utils/otlp";
-import { config } from "./utils/config";
 import { logger } from "./utils/logging";
-import { RateLimiter } from "./middlewares/limiting";
-import { InMemoryCache } from "./integrations/cache/in-mem-cache";
+import { MaybePromise } from "./utils/async";
 
-async function main() {
-	// Switch to another Cache<number> implementation at your leisure.
-	const limiter = RateLimiter.withCache(new InMemoryCache());
-	const http = await bootstrap(limiter);
-
-	http.app.listen(config.port, () => {
-		logger.info(`Environment: ${config.env}`);
-		logger.info(`${config.apiName} listening on port ${config.port}`);
-	});
-
+async function main<T>(execute: () => MaybePromise<T>) {
 	process.on("SIGINT", () => {
 		logger.info("Shutting down OTLP client.");
 		otlpSdk.shutdown().then(() => {
@@ -22,6 +10,8 @@ async function main() {
 			process.exit(0);
 		});
 	});
+
+	await execute();
 }
 
-void main();
+void main(() => {});

@@ -1,6 +1,6 @@
 import Koa from "koa";
-import { logger } from "../utils/logging";
-import { config } from "../utils/config";
+import { config } from "../../../../utils/config";
+import { logger } from "../../../../utils/logging";
 
 /**
  * Middleware to log the incoming request and outgoing response with duration in milliseconds.

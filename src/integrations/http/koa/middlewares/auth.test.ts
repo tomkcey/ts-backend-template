@@ -1,21 +1,22 @@
 import supertest from "supertest";
 import { auth } from "./auth";
-import { config } from "../utils/config";
 import TestAgent from "supertest/lib/agent";
-import { KoaHttp } from "../integrations/http";
+import { KoaHttp } from "../koa";
 import { error } from "./errors";
+import { config } from "../../../../utils/config";
 
 describe(auth.name, () => {
 	let mockApp: TestAgent;
 
 	beforeEach(async () => {
-		const http = KoaHttp.getKoaHttpServer()
-			.middleware(error)
-			.middleware(auth)
-			.createController("/ping", "get", async (_, res) => {
+		const http = KoaHttp.getKoaHttpServer(error, auth).createController(
+			"/ping",
+			"get",
+			async (_, res) => {
 				res.status = 204;
 				return res;
-			});
+			},
+		);
 
 		mockApp = supertest(http.app.callback());
 	});

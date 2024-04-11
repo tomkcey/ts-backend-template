@@ -6,8 +6,8 @@ import Koa, {
 	Response,
 } from "koa";
 import KoaRouter from "koa-router";
-import { Handler, Http, Method, Middleware } from "./http";
-import { logger } from "../../utils/logging";
+import { Handler, Http, Method, Middleware } from "../http";
+import { logger } from "../../../utils/logging";
 
 /**
  * [Stack Overflow Link](https://stackoverflow.com/a/58436959/11688144)
@@ -62,9 +62,6 @@ export class KoaHttp implements Http<Request, Response, Next> {
 		return false;
 	}
 
-	/**
-	 * Creates a controller for a specific route.
-	 */
 	public createController(
 		url: Paths<typeof this.router>,
 		method: Method,
@@ -80,9 +77,6 @@ export class KoaHttp implements Http<Request, Response, Next> {
 		return this;
 	}
 
-	/**
-	 * Adds a middleware to the application or a specific route.
-	 */
 	public middleware(
 		handler: Middleware<Request, Response, Next>,
 		url?: Paths<typeof this.router>,
@@ -112,9 +106,15 @@ export class KoaHttp implements Http<Request, Response, Next> {
 export namespace KoaHttp {
 	let server: KoaHttp | null = null;
 
-	export function getKoaHttpServer() {
+	export function getKoaHttpServer(
+		...middlewares: Middleware<Request, Response, Next>[]
+	) {
 		if (!server) {
-			server = new KoaHttp();
+			const http = new KoaHttp();
+			server = middlewares.reduce(
+				(acc, cur) => acc.middleware(cur),
+				http,
+			);
 		}
 		return server;
 	}

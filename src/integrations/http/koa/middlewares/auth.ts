@@ -1,6 +1,6 @@
 import Koa from "koa";
-import { config } from "../utils/config";
-import { UnauthorizedError } from "../utils/errors";
+import { UnauthorizedError } from "../../../../utils/errors";
+import { config } from "../../../../utils/config";
 
 const API_KEY_HEADER_KEY = "x-api-key";
 

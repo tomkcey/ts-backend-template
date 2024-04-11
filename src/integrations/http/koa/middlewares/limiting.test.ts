@@ -1,12 +1,12 @@
 import supertest from "supertest";
-import { config } from "../utils/config";
 import { RateLimiter } from "./limiting";
-import { sequential } from "../utils/async";
 import TestAgent from "supertest/lib/agent";
-import { sleep } from "../test/utils";
-import { RedisCache } from "../integrations/cache/redis";
-import { KoaHttp } from "../integrations/http";
 import { error } from "./errors";
+import { RedisCache } from "../../../cache";
+import { KoaHttp } from "../koa";
+import { config } from "../../../../utils/config";
+import { sequential } from "../../../../utils/async";
+import { sleep } from "../../../../test/utils";
 
 describe(RateLimiter.name, () => {
 	let mockApp: TestAgent;
@@ -17,15 +17,12 @@ describe(RateLimiter.name, () => {
 
 		const limiter = RateLimiter.withCache(cache);
 
-		const http = KoaHttp.getKoaHttpServer()
-			.middleware(error)
-			.middleware(async (req, res, next) =>
-				limiter.middleware(req, res, next),
-			)
-			.createController("/ping", "get", async (_, res) => {
-				res.status = 204;
-				return res;
-			});
+		const http = KoaHttp.getKoaHttpServer(error, async (req, res, next) =>
+			limiter.middleware(req, res, next),
+		).createController("/ping", "get", async (_, res) => {
+			res.status = 204;
+			return res;
+		});
 
 		mockApp = supertest(http.app.callback());
 	});
