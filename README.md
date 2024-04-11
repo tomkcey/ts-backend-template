@@ -23,9 +23,9 @@ In your `.vscode/launch.json` you can copy and paste the following block. It sho
 
 ### Testcontainers
 
-When you launch the jest runner, it will first setup some docker containers using testcontainers. Sometimes problems arise with those containers and you might want to see the logs. To output them in the terminal you can simply add `DEBUG=testcontainers` before the `npm run test` command.
+When you launch the jest runner, it will first setup some docker containers using testcontainers. Sometimes problems arise with those containers and you might want to see the logs. To output them in the terminal you can simply add `DEBUG=testcontainers*` before the `npm run test` command.
 
-`DEBUG=testcontainers npm run test`
+`DEBUG=testcontainers* npm run test`
 
 ## Notes
 
