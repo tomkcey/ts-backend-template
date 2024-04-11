@@ -8,9 +8,9 @@ import { InMemoryCache } from "./integrations/cache/in-mem-cache";
 async function main() {
 	// Switch to another Cache<number> implementation at your leisure.
 	const limiter = RateLimiter.withCache(new InMemoryCache());
-	const app = await bootstrap(limiter);
+	const http = await bootstrap(limiter);
 
-	app.listen(config.port, () => {
+	http.app.listen(config.port, () => {
 		logger.info(`Environment: ${config.env}`);
 		logger.info(`${config.apiName} listening on port ${config.port}`);
 	});

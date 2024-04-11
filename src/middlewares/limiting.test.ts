@@ -1,11 +1,12 @@
 import supertest from "supertest";
-import { bootstrap } from "../app";
 import { config } from "../utils/config";
 import { RateLimiter } from "./limiting";
 import { sequential } from "../utils/async";
 import TestAgent from "supertest/lib/agent";
 import { sleep } from "../test/utils";
 import { RedisCache } from "../integrations/cache/redis";
+import { KoaHttp } from "../integrations/http";
+import { error } from "./errors";
 
 describe(RateLimiter.name, () => {
 	let mockApp: TestAgent;
@@ -15,12 +16,22 @@ describe(RateLimiter.name, () => {
 		await cache.clear();
 
 		const limiter = RateLimiter.withCache(cache);
-		const app = await bootstrap(limiter);
 
-		mockApp = supertest(app.callback());
+		const http = KoaHttp.getKoaHttpServer()
+			.middleware(error)
+			.middleware(async (req, res, next) =>
+				limiter.middleware(req, res, next),
+			)
+			.createController("/ping", "get", async (_, res) => {
+				res.status = 204;
+				return res;
+			});
+
+		mockApp = supertest(http.app.callback());
 	});
 
 	afterEach(async () => {
+		KoaHttp.cleanup();
 		RateLimiter.cleanup();
 		await RedisCache.cleanup();
 	});

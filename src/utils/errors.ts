@@ -11,14 +11,14 @@ export abstract class ServerError extends Error {
 		this.name = this.constructor.name;
 	}
 
-	public httpRespond(ctx: Koa.Context): Koa.Context {
-		ctx.status = this.code;
-		ctx.body = {
+	public httpRespond(res: Koa.Response): Koa.Response {
+		res.status = this.code;
+		res.body = {
 			error: this.name,
 			message: this.message,
 			details: this.details,
 		};
-		return ctx;
+		return res;
 	}
 }
 

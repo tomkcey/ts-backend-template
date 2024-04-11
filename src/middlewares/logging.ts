@@ -5,19 +5,19 @@ import { config } from "../utils/config";
 /**
  * Middleware to log the incoming request and outgoing response with duration in milliseconds.
  */
-export async function log(ctx: Koa.Context, next: Koa.Next) {
+export async function log(req: Koa.Request, res: Koa.Response, next: Koa.Next) {
 	if (config.env === "test") {
 		return next();
 	}
 
 	const s = new Date();
-	logger.info(`${ctx.method} ${ctx.url}`);
+	logger.info(`${req.method} ${req.url}`);
 
 	await next();
 
 	const e = new Date();
-	const logLevel = ctx.status >= 400 ? "error" : "info";
+	const logLevel = res.status >= 400 ? "error" : "info";
 	logger[logLevel](
-		`${ctx.method} ${ctx.url} ${ctx.status} ${e.getTime() - s.getTime()}ms`,
+		`${req.method} ${req.url} ${res.status} ${e.getTime() - s.getTime()}ms`,
 	);
 }
