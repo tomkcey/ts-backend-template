@@ -1,6 +1,7 @@
 import { otlpSdk } from "./utils/otlp";
 import { logger } from "./utils/logging";
 import { MaybePromise } from "./utils/async";
+import { Cli } from "./integrations/cli/cli";
 
 async function main<T>(execute: () => MaybePromise<T>) {
 	process.on("SIGINT", () => {
@@ -14,4 +15,4 @@ async function main<T>(execute: () => MaybePromise<T>) {
 	await execute();
 }
 
-void main(() => {});
+void main(Cli.run);
