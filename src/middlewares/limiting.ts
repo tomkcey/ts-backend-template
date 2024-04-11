@@ -29,20 +29,18 @@ export class RateLimiter {
 		protected subscribers: Subscriber<number, RateLimiter>[] = [],
 	) {}
 
-	public async middleware(ctx: Koa.Context, next: Koa.Next) {
-		const result = await this.execute(ctx.ip);
+	public async middleware(req: Koa.Request, _: Koa.Response, next: Koa.Next) {
+		const result = await this.execute(req.ip);
 
 		if (result === ExecutorResult.Passthrough) {
 			return next();
 		}
 
 		if (result === ExecutorResult.Limited) {
-			const error = new TooManyRequestsError();
-			return error.httpRespond(ctx);
+			throw new TooManyRequestsError();
 		}
 
-		const error = new InternalServerError();
-		return error.httpRespond(ctx);
+		throw new InternalServerError();
 	}
 
 	public async get(ip: string): Promise<number | undefined> {

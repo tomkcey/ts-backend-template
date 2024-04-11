@@ -1,27 +1,27 @@
 import supertest from "supertest";
-import { bootstrap } from "../app";
 import { auth } from "./auth";
 import { config } from "../utils/config";
 import TestAgent from "supertest/lib/agent";
-import { RateLimiter } from "./limiting";
-import { RedisCache } from "../integrations/cache/redis";
+import { KoaHttp } from "../integrations/http";
+import { error } from "./errors";
 
 describe(auth.name, () => {
 	let mockApp: TestAgent;
 
 	beforeEach(async () => {
-		const cache = await RedisCache.getCache();
-		await cache.clear();
+		const http = KoaHttp.getKoaHttpServer()
+			.middleware(error)
+			.middleware(auth)
+			.createController("/ping", "get", async (_, res) => {
+				res.status = 204;
+				return res;
+			});
 
-		const limiter = RateLimiter.withCache(cache);
-		const app = await bootstrap(limiter);
-
-		mockApp = supertest(app.callback());
+		mockApp = supertest(http.app.callback());
 	});
 
 	afterEach(async () => {
-		RateLimiter.cleanup();
-		await RedisCache.cleanup();
+		KoaHttp.cleanup();
 	});
 
 	it("returns 401 Unauthorized when no api key provided", async () => {
