@@ -13,9 +13,40 @@ In your `.vscode/launch.json` you can copy and paste the following block. It sho
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Debug Koa API",
+			"name": "Debug Koa Server",
 			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}/dist/index.js"
+			"program": "${workspaceFolder}/dist/index.js",
+			"args": ["serve", "-p", "6000", "--provider", "koa"],
+			"preLaunchTask": "npm: build",
+			"outputCapture": "std"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug function Function",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}/dist/index.js",
+			"args": ["function", "-n", "function"],
+			"preLaunchTask": "npm: build",
+			"outputCapture": "std"
+		}
+	]
+}
+```
+
+In your `.vscode/task.json` you can copy and paste the following block. It should work right out of the box.
+
+```json
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "npm: build",
+			"type": "npm",
+			"script": "build",
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "tsc"
 		}
 	]
 }
@@ -36,3 +67,7 @@ All environment variables go in the `.env` file at root. However, for some tests
 ### Infrastructure
 
 To bring the whole infrastructure up, you can either use the shell scripts in `./scripts/*.sh` individually, or the `docker-compose.yml` file with `docker compose up --build`.
+
+### Tests
+
+Not all test require external dependencies (like PostgreSQL, Redis, etc). To run tests without having to spin up containers for these dependencies, use the `npm run test:nosetup` npm script.

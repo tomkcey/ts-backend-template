@@ -1,7 +1,7 @@
 export type MaybePromise<T> = T | Promise<T>;
 
 export async function sequential<T, U>(
-	arr: T[],
+	arr: readonly T[],
 	fn: (x: T, idx: number) => Promise<U>,
 ): Promise<U[]> {
 	const results: U[] = [];

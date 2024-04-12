@@ -24,7 +24,7 @@ export namespace Cli {
 	}
 
 	export enum FunctionName {
-		Greeting = "greeting",
+		Function = "function",
 	}
 
 	let cli: Cli | null = null;
