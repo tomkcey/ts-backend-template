@@ -8,6 +8,7 @@ import {
 import { QueryResultRow } from "pg";
 import { Database } from "./db";
 import { sequential } from "../../utils/async";
+import { sleep } from "../../test/utils";
 
 type Resource = {
 	id: number;
@@ -69,10 +70,7 @@ class ResourceDatabase extends PostgresDatabase {
 	): Promise<Resource> {
 		return this.transaction(async (executor) => {
 			const db = new ResourceDatabase(executor);
-
-			const resource = await db.insert(data);
-
-			return resource;
+			return db.insert(data);
 		});
 	}
 
@@ -110,10 +108,7 @@ class ResourceDatabase extends PostgresDatabase {
 	): Promise<Resource> {
 		return this.transaction(async (executor) => {
 			const db = new ResourceDatabase(executor);
-
-			const updatedResource = await db.update(id, data);
-
-			return updatedResource;
+			return db.update(id, data);
 		});
 	}
 
@@ -126,8 +121,7 @@ class ResourceDatabase extends PostgresDatabase {
 
 		await this.transaction(async (executor) => {
 			const db = new ResourceDatabase(executor);
-
-			await db.execute(SQL`DELETE FROM resources WHERE id = ${id};`);
+			return db.execute(SQL`DELETE FROM resources WHERE id = ${id};`);
 		});
 	}
 }
@@ -229,6 +223,8 @@ describe(Database.name, () => {
 			const resource = await db.createResource({
 				name: "test",
 			});
+
+			await sleep(250);
 
 			const updatedResource = await db.updateResource(resource.id, {
 				name: "anotherTest",
