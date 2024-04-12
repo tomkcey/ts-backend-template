@@ -2,9 +2,12 @@ import { otlpSdk } from "./utils/otlp";
 import { logger } from "./utils/logging";
 import { MaybePromise } from "./utils/async";
 import { Cli } from "./integrations/cli/cli";
-import { main as greeting } from "./functions/greeting";
-import { KoaHttp } from "./integrations/http";
+import { main as func } from "./functions/function";
+import { KoaHttp, middlewares } from "./integrations/http";
 import { config } from "./utils/config";
+import { InMemoryCache } from "./integrations/cache";
+import { constants } from "http2";
+import { executionTime } from "./utils/time";
 
 async function main<T>(execute: () => MaybePromise<T>) {
 	process.on("SIGINT", () => {
@@ -34,14 +37,30 @@ void main(() =>
 
 					if (opts.provider === Cli.ServeProvider.Koa) {
 						logger.info(
-							`Starting http server using provider ${opts.provider}`,
+							`Starting http server using provider '${opts.provider}'`,
 						);
 
-						const http = KoaHttp.getKoaHttpServer();
-						return http.start(port);
+						return KoaHttp.getKoaHttpServer(
+							middlewares.trace,
+							middlewares.log,
+							middlewares.error,
+							middlewares.auth,
+							async (req, res, next) =>
+								middlewares.RateLimiter.withCache(
+									new InMemoryCache(),
+								).middleware(req, res, next),
+						)
+							.createController("/ping", "get", async (_, res) =>
+								KoaHttp.withResponse(res)
+									.status(constants.HTTP_STATUS_OK)
+									.body("pong")
+									.headers({ "Content-Type": "text/plain" })
+									.build(),
+							)
+							.start(port);
 					}
 
-					throw new Error(`Unsupported provider ${opts.provider}`);
+					throw new Error(`Unsupported provider '${opts.provider}'`);
 				}),
 		(command) =>
 			command
@@ -51,13 +70,19 @@ void main(() =>
 				.action(async (opts) => {
 					logger.info("Received command to execute function");
 
-					if (opts.name === Cli.FunctionName.Greeting) {
-						logger.info(`Executing function ${opts.name}`);
+					const { timeInMs } = await executionTime(async () => {
+						if (opts.name === Cli.FunctionName.Function) {
+							logger.info(`Executing function '${opts.name}'`);
 
-						return greeting();
-					}
+							return func();
+						}
 
-					throw new Error(`Unsupported function ${opts.name}`);
+						throw new Error(`Unsupported function '${opts.name}'`);
+					});
+
+					logger.info(
+						`Function '${opts.name}' took ${timeInMs}ms to complete`,
+					);
 				}),
 	),
 );

@@ -20,10 +20,7 @@ type Paths<T> = T extends object
 
 export class KoaHttp implements Http<Request, Response, Next> {
 	public app: Koa<DefaultState, DefaultContext> = new Koa();
-	protected router = {
-		v1: { achievements: { [":id"]: {} } },
-		ping: {},
-	} as const;
+	protected router = { ping: {} } as const;
 	protected routerMap = new Map<Paths<typeof this.router>, KoaRouter>();
 	protected routerMethodMap = new Map<
 		Paths<typeof this.router>,
@@ -124,5 +121,34 @@ export namespace KoaHttp {
 			server.app.removeAllListeners();
 			server = null;
 		}
+	}
+
+	class KoaResponseBuilder {
+		constructor(private response: Koa.Response) {}
+
+		status(status: number) {
+			this.response.status = status;
+			return this;
+		}
+
+		body(body: string) {
+			this.response.body = body;
+			return this;
+		}
+
+		headers(headers: Record<string, string>) {
+			for (const [key, value] of Object.entries(headers)) {
+				this.response.set(key, value);
+			}
+			return this;
+		}
+
+		build(): Koa.Response {
+			return this.response;
+		}
+	}
+
+	export function withResponse(response: Koa.Response): KoaResponseBuilder {
+		return new KoaResponseBuilder(response);
 	}
 }
