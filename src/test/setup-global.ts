@@ -17,6 +17,10 @@ export default async function setup() {
 	// Just to make the output more readable
 	console.log("\n");
 
+	if (process.argv.includes("--no-setup")) {
+		return;
+	}
+
 	await orchestrator.add(
 		"rabbitmq",
 		new GenericContainer("rabbitmq:3.13.1")
