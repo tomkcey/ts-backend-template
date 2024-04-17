@@ -25,7 +25,7 @@ export const config = {
 function ensureKey(key: string): string {
 	const v = process.env[key];
 	if (!v) {
-		throw new Error(`Missing required environment variable ${key}`);
+		throw new Error(`Missing required environment variable '${key}'`);
 	}
 	return v;
 }
