@@ -24,10 +24,7 @@ jobs:
                   API_NAME: "test"
                   RATE_LIMIT_DURATION_MS: 1000
                   RATE_LIMIT_MAX_REQUESTS: 5
-                  ENABLE_TEST_RABBITMQ_CONTAINER: true
-                  ENABLE_TEST_MINIO_CONTAINER: true
-                  ENABLE_TEST_REDIS_CONTAINER: true
-                  ENABLE_TEST_POSTGRES_CONTAINER: true
+                  # Third Party Services
                   PG_URL: "postgres://test:test@localhost:5432/postgres"
                   REDIS_URL: "redis://localhost:6379"
                   AMQP_URL: "amqp://test:test@localhost:5672"
@@ -35,3 +32,9 @@ jobs:
                   MINIO_PORT: 9000
                   MINIO_ACCESS_KEY: "miniousertest"
                   MINIO_SECRET_KEY: "miniousertest"
+                  # Tests Behaviours
+                  ENABLE_TEST_RABBITMQ_CONTAINER: true
+                  ENABLE_TEST_MINIO_CONTAINER: true
+                  ENABLE_TEST_REDIS_CONTAINER: true
+                  ENABLE_TEST_POSTGRES_CONTAINER: true
+                  DEBUG_TEST: false
