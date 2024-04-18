@@ -1,12 +1,12 @@
 {
-	"name": "koa",
+	"name": "ts-backend-template",
 	"version": "0.1.0",
-	"description": "HTTP server template using Koa",
-	"main": "index.js",
+	"description": "A Typescript backend template",
+	"main": "dist/index.js",
 	"keywords": [
-		"koa",
-		"http",
-		"server"
+		"backend",
+		"typescript",
+		"nodejs"
 	],
 	"author": "Thomas Caissie <tomkcey@gmail.com> (https://github.com/tomkcey)",
 	"license": "UNLICENSED",
