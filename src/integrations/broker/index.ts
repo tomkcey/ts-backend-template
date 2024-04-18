@@ -1,3 +1,1 @@
-export { Broker, Consumer, Producer } from "./broker";
-export { Amqp } from "./amqp";
-export { MessageEmitter } from "./emitter";
+export { Manager, Executor, Consumer, Producer } from "./amqp/amqp";

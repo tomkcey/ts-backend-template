@@ -11,8 +11,8 @@
 	"author": "Thomas Caissie <tomkcey@gmail.com> (https://github.com/tomkcey)",
 	"license": "UNLICENSED",
 	"scripts": {
-		"test": "jest",
-		"test:nosetup": "jest --no-setup",
+		"test": "NODE_ENV=test jest",
+		"test:nosetup": "NODE_ENV=test jest --no-setup",
 		"dev": "nodemon --require ./src/utils/otlp.ts src/index.ts",
 		"build": "tsc",
 		"start": "node --require ./dist/utils/otlp.js dist/index.js",

@@ -1,5 +1,6 @@
 import { createLogger, transports, format } from "winston";
 import { store } from "../integrations/http/koa/middlewares/tracing";
+import { config } from "./config";
 
 const { colorize, combine, printf, timestamp } = format;
 
@@ -13,7 +14,10 @@ const msgFormat = combine(
 );
 
 export const logger = createLogger({
-	level: "info",
+	level:
+		config.env === "test" && process.env.DEBUG_TEST !== "true"
+			? "silent"
+			: "debug",
 	format: msgFormat,
 	transports: [new transports.Console()],
 });
