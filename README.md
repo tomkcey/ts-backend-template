@@ -71,3 +71,14 @@ To bring the whole infrastructure up, you can either use the shell scripts in `.
 ### Tests
 
 Not all test require external dependencies (like PostgreSQL, Redis, etc). To run tests without having to spin up containers for these dependencies, use the `npm run test:nosetup` npm script.
+
+If you want only a select dependency, you can use the following environment variables to skip any of your choosing by setting it to false, or commenting it out temporarily.
+
+```.env
+ENABLE_TEST_RABBITMQ_CONTAINER=true
+ENABLE_TEST_MINIO_CONTAINER=true
+ENABLE_TEST_REDIS_CONTAINER=true
+ENABLE_TEST_POSTGRES_CONTAINER=true
+```
+
+And by default the logger is set to `debug` level. If you want to silence the logs, useful when running tests for example, you can set the `NODE_ENV` to _test_ and `DEBUG_TEST` to _false_. Notice that in the `package.json` the test commands already set the environent to _test_.
