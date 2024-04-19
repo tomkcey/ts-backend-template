@@ -1,6 +1,6 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
 import { SQLStatement } from "sql-template-strings";
-import { Database, Executor } from "./db";
+import { Database, Executor } from "./interfaces";
 import { config } from "../../utils/config";
 
 const pool = new Pool({ connectionString: config.pg.url });

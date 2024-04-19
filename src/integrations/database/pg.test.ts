@@ -6,7 +6,7 @@ import {
 	NotFoundError,
 } from "../../utils/errors";
 import { QueryResultRow } from "pg";
-import { Database } from "./db";
+import { Database } from "./interfaces";
 import { sequential } from "../../utils/async";
 import { sleep } from "../../test/utils";
 

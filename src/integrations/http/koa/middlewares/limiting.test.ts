@@ -2,17 +2,17 @@ import supertest from "supertest";
 import { RateLimiter } from "./limiting";
 import TestAgent from "supertest/lib/agent";
 import { error } from "./errors";
-import { RedisCache } from "../../../cache";
+import { Cache } from "../../../cache";
 import { KoaHttp } from "../koa";
 import { config } from "../../../../utils/config";
 import { sequential } from "../../../../utils/async";
 import { sleep } from "../../../../test/utils";
 
 describe(RateLimiter.name, () => {
+	const cache = new Cache();
 	let mockApp: TestAgent;
 
 	beforeEach(async () => {
-		const cache = await RedisCache.getCache();
 		await cache.clear();
 
 		const limiter = RateLimiter.withCache(cache);
@@ -30,7 +30,7 @@ describe(RateLimiter.name, () => {
 	afterEach(async () => {
 		KoaHttp.cleanup();
 		RateLimiter.cleanup();
-		await RedisCache.cleanup();
+		await cache.disconnect();
 	});
 
 	it("returns 429 Too Many Requests when the rate limit has been reached, and the target's route usual return when the ban timer ends", async () => {

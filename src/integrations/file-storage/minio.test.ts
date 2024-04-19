@@ -1,9 +1,11 @@
-import { MinioFileStorage } from "./minio";
+import { Store } from "./minio";
 import { writeFile } from "fs/promises";
 import { createReadStream } from "fs";
 import path from "path";
 
-describe(MinioFileStorage.name, () => {
+describe(Store.name, () => {
+	const store = new Store();
+
 	it("streams the file unto the bucket and streams it back in memory", async () => {
 		const message = "test";
 		const filename = "test.log";
@@ -12,11 +14,9 @@ describe(MinioFileStorage.name, () => {
 
 		const readable = createReadStream(path.join(__dirname, filename));
 
-		const storage = await MinioFileStorage.getFileStorage("logs");
+		await store.upload(filename, "logs", readable);
 
-		await storage.upload(filename, readable);
-
-		const data = await storage.download(filename);
+		const data = await store.download(filename, "logs");
 
 		const chunks: Buffer[] = [];
 		for await (const chunk of data) {

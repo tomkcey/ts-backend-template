@@ -5,6 +5,7 @@ import {
 	TooManyRequestsError,
 } from "../../../../utils/errors";
 import { config } from "../../../../utils/config";
+import { isNil } from "../../../../utils/coersion";
 
 enum ExecutorResult {
 	Passthrough,
@@ -28,7 +29,7 @@ type Subscriber<T, U = RateLimiter> = (
  */
 export class RateLimiter {
 	constructor(
-		protected cache: Cache<number> = new Map<string, number>(),
+		protected cache: Cache,
 		protected subscribers: Subscriber<number, RateLimiter>[] = [],
 	) {}
 
@@ -46,16 +47,22 @@ export class RateLimiter {
 		throw new InternalServerError();
 	}
 
-	public async get(ip: string): Promise<number | undefined> {
-		return this.cache.get(ip);
+	public async get(ip: string): Promise<number | null> {
+		const hit = await this.cache.get(ip);
+		if (isNil(hit)) {
+			return hit;
+		}
+
+		const result = parseInt(hit, 10);
+		return result;
 	}
 
 	public async set(
 		ip: string,
 		count: number,
 		expirationInSeconds?: number,
-	): Promise<Cache<number>> {
-		return this.cache.set(ip, count, expirationInSeconds);
+	): Promise<Cache> {
+		return this.cache.set(ip, count.toString(), expirationInSeconds);
 	}
 
 	public async clear(): Promise<void> {
@@ -93,7 +100,7 @@ export namespace RateLimiter {
 		limiter = null;
 	}
 
-	export function withCache(cache: Cache<number>): RateLimiter {
+	export function withCache(cache: Cache): RateLimiter {
 		if (limiter) {
 			return limiter;
 		}
