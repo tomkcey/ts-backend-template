@@ -1,66 +1,58 @@
 import { Client } from "minio";
 import { Readable } from "stream";
-import { FileStorageExecutor } from "./file-storage";
 import { config } from "../../utils/config";
+import { isNil } from "../../utils/coersion";
 
-export class MinioFileStorage implements FileStorageExecutor {
-	constructor(
-		private readonly client: Client,
-		private readonly bucket: string,
-	) {}
+export class Store {
+	private client: Client | null = null;
+	private buckets: Set<string> = new Set();
 
-	async upload(filename: string, stream: Readable): Promise<void> {
-		await this.client.putObject(this.bucket, filename, stream);
-	}
-
-	async download(filename: string): Promise<Readable> {
-		return this.client.getObject(this.bucket, filename);
-	}
-
-	async delete(filename: string): Promise<void> {
-		await this.client.removeObject(this.bucket, filename);
-	}
-}
-
-export namespace MinioFileStorage {
-	export const BUCKETS = ["logs"] as const;
-
-	export type Bucket = (typeof BUCKETS)[number];
-
-	let client: Client | null = null;
-
-	function getClient() {
-		if (client) {
-			return client;
+	private getClient(): Client {
+		if (isNil(this.client)) {
+			this.client = new Client({
+				accessKey: config.minio.accessKey,
+				secretKey: config.minio.secretKey,
+				endPoint: config.minio.url,
+				port: config.minio.port,
+				useSSL: false,
+			});
 		}
 
-		client = new Client({
-			accessKey: config.minio.accessKey,
-			secretKey: config.minio.secretKey,
-			endPoint: config.minio.url,
-			port: config.minio.port,
-			useSSL: false,
-		});
-		return client;
+		return this.client;
 	}
 
-	let fileStorageMap = new Map<Bucket, MinioFileStorage | null>();
-
-	export async function getFileStorage(bucket: Bucket) {
-		const maybeFileStorage = fileStorageMap.get(bucket);
-		if (maybeFileStorage) {
-			return maybeFileStorage;
+	public async setupBucket(bucket: string): Promise<void> {
+		if (this.buckets.has(bucket)) {
+			return;
 		}
 
-		const client = getClient();
-
-		const bucketExists = await client.bucketExists(bucket);
-		if (!bucketExists) {
+		const client = this.getClient();
+		const exists = await client.bucketExists(bucket);
+		if (!exists) {
 			await client.makeBucket(bucket);
+			this.buckets.add(bucket);
 		}
+	}
 
-		const fileStorage = new MinioFileStorage(client, bucket);
-		fileStorageMap.set(bucket, fileStorage);
-		return fileStorage;
+	public async upload(
+		filename: string,
+		bucket: string,
+		stream: Readable,
+	): Promise<void> {
+		const client = this.getClient();
+		await this.setupBucket(bucket);
+		await client.putObject(bucket, filename, stream);
+	}
+
+	public async download(filename: string, bucket: string): Promise<Readable> {
+		const client = this.getClient();
+		await this.setupBucket(bucket);
+		return client.getObject(bucket, filename);
+	}
+
+	public async delete(filename: string, bucket: string): Promise<void> {
+		const client = this.getClient();
+		await this.setupBucket(bucket);
+		await client.removeObject(bucket, filename);
 	}
 }
