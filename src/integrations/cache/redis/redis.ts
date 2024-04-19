@@ -13,6 +13,7 @@ export class Cache extends Debugabble {
 	private async getClient(): Promise<RedisClientType> {
 		let client = this.client;
 		if (!client) {
+			this.debug(`Creating new Redis client for cache [${this.id}]`);
 			client = createClient({ url: config.redis.url });
 			client.on("error", (error) => {
 				this.error(`Redis error: ${error}`);

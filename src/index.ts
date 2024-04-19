@@ -45,9 +45,7 @@ void main(() =>
 					const port = opts.port ?? config.port;
 					process.env.PORT = port.toString();
 
-					logger.info(
-						`Starting http server using provider '${opts.provider}'`,
-					);
+					const cache = new Cache();
 
 					return KoaHttp.getKoaHttpServer(
 						middlewares.trace,
@@ -55,9 +53,11 @@ void main(() =>
 						middlewares.error,
 						middlewares.auth,
 						async (req, res, next) =>
-							middlewares.RateLimiter.withCache(
-								new Cache(),
-							).middleware(req, res, next),
+							middlewares.RateLimiter.withCache(cache).middleware(
+								req,
+								res,
+								next,
+							),
 					)
 						.createController("/ping", "get", async (_, res) =>
 							KoaHttp.withResponse(res)

@@ -5,7 +5,7 @@ dotenv.config();
 export const config = {
 	apiName: ensureKey("API_NAME"),
 	apiKey: ensureKey("API_KEY"),
-	env: process.env.NODE_ENV ?? "development",
+	env: process.env.NODE_ENV ?? "dev",
 	port: process.env.PORT ?? 3000,
 	rateLimit: {
 		durationInMs: parseInt(ensureKey("RATE_LIMIT_DURATION_MS"), 10),
@@ -19,6 +19,9 @@ export const config = {
 		port: parseInt(ensureKey("MINIO_PORT"), 10),
 		accessKey: ensureKey("MINIO_ACCESS_KEY"),
 		secretKey: ensureKey("MINIO_SECRET_KEY"),
+	},
+	otlp: {
+		otlpUrl: process.env.OTLP_URL,
 	},
 } as const;
 

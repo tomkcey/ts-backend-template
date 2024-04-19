@@ -21,13 +21,7 @@ COPY --from=build /app/dist ./
 
 RUN npm i --omit=dev
 
-ARG PORT
-ENV PORT_ENV=$PORT
-
-ARG PROVIDER
-ENV PROVIDER_ENV=$PROVIDER
-
-CMD node index.js serve -p ${PORT_ENV}
+CMD node --require ./utils/otlp.js index.js serve
 
 #############################################
 
@@ -43,4 +37,4 @@ RUN npm i --omit=dev
 ARG FUNCTION_NAME
 ENV FUNCTION_NAME_ENV=$FUNCTION_NAME
 
-CMD node index.js function -n ${FUNCTION_NAME_ENV}
+CMD node --require ./utils/otlp.js  index.js function -n ${FUNCTION_NAME_ENV}

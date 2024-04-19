@@ -14,10 +14,11 @@ const msgFormat = combine(
 );
 
 export const logger = createLogger({
-	level:
-		config.env === "test" && process.env.DEBUG_TEST !== "true"
-			? "silent"
-			: "debug",
+	level: isDebug() ? "debug" : "info",
 	format: msgFormat,
 	transports: [new transports.Console()],
 });
+
+function isDebug() {
+	return config.env !== "test" || process.env.DEBUG_TEST === "true";
+}

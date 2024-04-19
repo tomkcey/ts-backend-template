@@ -20,7 +20,7 @@ type Paths<T> = T extends object
 
 export class KoaHttp implements Http<Request, Response, Next> {
 	public app: Koa<DefaultState, DefaultContext> = new Koa();
-	protected router = { ping: {} } as const;
+	protected router = { ping: [] } as const;
 	protected routerMap = new Map<Paths<typeof this.router>, KoaRouter>();
 	protected routerMethodMap = new Map<
 		Paths<typeof this.router>,

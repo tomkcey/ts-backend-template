@@ -4,6 +4,9 @@ import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { KoaInstrumentation } from "@opentelemetry/instrumentation-koa";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import { AmqplibInstrumentation } from "@opentelemetry/instrumentation-amqplib";
+import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
+import { RedisInstrumentation } from "@opentelemetry/instrumentation-redis-4";
 import { config } from "./config";
 
 export const otlpSdk = (() => {
@@ -13,11 +16,17 @@ export const otlpSdk = (() => {
 
 	return new NodeSDK({
 		serviceName: config.apiName,
-		traceExporter: new OTLPTraceExporter(),
+		traceExporter: new OTLPTraceExporter({ url: config.otlp.otlpUrl }),
 		metricReader: new PeriodicExportingMetricReader({
-			exporter: new OTLPMetricExporter(),
+			exporter: new OTLPMetricExporter({ url: config.otlp.otlpUrl }),
 		}),
-		instrumentations: [new HttpInstrumentation(), new KoaInstrumentation()],
+		instrumentations: [
+			new HttpInstrumentation(),
+			new KoaInstrumentation(),
+			new AmqplibInstrumentation(),
+			new PgInstrumentation(),
+			new RedisInstrumentation(),
+		],
 	});
 })();
 
