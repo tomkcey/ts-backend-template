@@ -12,7 +12,7 @@ RUN npm run build
 
 #############################################
 
-FROM node:18-alpine AS app
+FROM node:18-alpine AS server
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ ENV PORT_ENV=$PORT
 ARG PROVIDER
 ENV PROVIDER_ENV=$PROVIDER
 
-CMD node index.js serve -p ${PORT_ENV} --provider ${PROVIDER_ENV}
+CMD node index.js serve -p ${PORT_ENV}
 
 #############################################
 
