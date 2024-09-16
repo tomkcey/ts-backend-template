@@ -1,0 +1,27 @@
+name: ci
+
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - name: Install dependencies
+        run: npm i
+      - name: Build application
+        run: npm run build -- --sourceMap false
+      - name: Run tests -- --coverage=false --verbose=false -o
+        run: |
+          docker compose up rabbitmq --build -d
+          sleep 5
+          npm run test
+          docker compose down
+        env:
+          APP_NAME: "test"
+          NODE_ENV: "test"
+          PORT: 8080

@@ -1,0 +1,54 @@
+{
+	"name": "ts-backend-template",
+	"version": "0.1.0",
+	"description": "A Typescript backend template",
+	"keywords": [
+		"backend",
+		"typescript",
+		"nodejs"
+	],
+	"author": "Thomas Caissie <tomkcey@gmail.com> (https://github.com/tomkcey)",
+	"license": "UNLICENSED",
+	"scripts": {
+		"test": "NODE_ENV=test jest",
+		"dev:web": "nodemon apps/web/index.ts",
+		"build": "tsc",
+		"start:web": "node dist/apps/web/index.js",
+		"ci": "npm i && npm run build && docker compose up rabbitmq --build -d && sleep 5 && npm run test && docker compose down",
+		"fmt": "prettier --write ./**/*.ts",
+		"containers:up": "docker compose up --build -d",
+		"containers:down": "docker compose down",
+		"container:build": "docker build -t app .",
+		"container:run": "docker run --env-file .env -t app",
+		"clean": "sh scripts/cleanup.sh",
+		"bootstrap": "sh scripts/bootstrap.sh"
+	},
+	"devDependencies": {
+		"@types/amqplib": "^0.10.5",
+		"@types/jest": "^29.5.12",
+		"@types/node": "^20.12.4",
+		"@types/pg": "^8.11.4",
+		"@types/supertest": "^6.0.2",
+		"jest": "^29.7.0",
+		"nodemon": "^3.1.0",
+		"prettier": "^3.2.5",
+		"supertest": "^6.3.4",
+		"ts-jest": "^29.1.2",
+		"ts-node": "^10.9.2",
+		"typescript": "5.5.4"
+	},
+	"dependencies": {
+		"@opentelemetry/api": "^1.9.0",
+		"@opentelemetry/exporter-metrics-otlp-proto": "^0.53.0",
+		"@opentelemetry/exporter-trace-otlp-proto": "^0.53.0",
+		"@opentelemetry/sdk-metrics": "^1.26.0",
+		"@opentelemetry/sdk-node": "^0.53.0",
+		"amqplib": "^0.10.4",
+		"commander": "12.1.0",
+		"dotenv": "^16.4.5",
+		"minio": "^8.0.1",
+		"pg": "^8.11.5",
+		"sql-template-strings": "^2.2.2",
+		"winston": "^3.14.2"
+	}
+}
