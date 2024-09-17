@@ -1,9 +1,10 @@
 import { Command, program } from "commander";
 import { createServer } from "http";
-import { constants } from "http2";
 import { getLogger } from "../../libs/integrations/logging/logging";
 import { getEnvironmentVariables } from "../../libs/integrations/environments/environments";
-import { opentelemetry, trace } from "../../libs/integrations/otlp/otlp";
+import { meter, opentelemetry, trace } from "../../libs/integrations/otlp/otlp";
+import { ValueType } from "@opentelemetry/api";
+import { constants } from "http2";
 
 async function main() {
 	// ENVIRONMENT VARIABLES
@@ -12,7 +13,11 @@ async function main() {
 			env: assert("NODE_ENV", (env) => env),
 			appName: assert("APP_NAME", (appName) => appName),
 			port: assert("PORT", (port) => port),
-			otlpUrl: assert("OTLP_URL", (url) => url),
+			// otlpUrl: assert("OTLP_URL", (url) => url),
+			otlp: {
+				metricsUrl: assert("OTLP_METRICS_URL", (url) => url),
+				tracesUrl: assert("OTLP_TRACES_URL", (url) => url),
+			},
 		};
 	});
 
@@ -20,10 +25,19 @@ async function main() {
 	const otlp = opentelemetry({
 		apiName: secrets.appName,
 		env: secrets.env,
-		otlpUrl: secrets.otlpUrl,
+		urls: { metrics: secrets.otlp.metricsUrl, traces: secrets.otlp.tracesUrl },
 	});
 
 	otlp.start();
+
+	// METRICS
+	const m = meter(secrets.appName);
+	const gauge = m.createGauge("example_gauge", { valueType: ValueType.INT });
+	const random = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min);
+
+	const interval = setInterval(() => {
+		gauge.record(random(0, 10));
+	}, 5000);
 
 	// LOGGER
 	const logger = getLogger({ app: secrets.appName, env: secrets.env });
@@ -32,13 +46,14 @@ async function main() {
 	await program
 		.addCommand(
 			new Command("serve").description("An example HTTP server.").action(() => {
-				const s = createServer(async (_req, res) => {
+				const s = createServer(async (_, res) => {
 					logger.info("Received request.");
-					const response = await trace(
-						async () => res.writeHead(constants.HTTP_STATUS_OK, { "Content-Type": "text/plain" }),
-						{ spanName: "http-call", tracerName: "http-tracer" },
+
+					return trace(
+						async () =>
+							res.writeHead(constants.HTTP_STATUS_OK, { "Content-Type": "text/plain" }).end(),
+						{ tracerName: secrets.appName, spanName: "serve" },
 					);
-					return response.end();
 				});
 
 				s.listen(secrets.port, () => logger.info(`Listening on ${secrets.port}.`));
@@ -46,6 +61,7 @@ async function main() {
 				process.on("SIGTERM", () => {
 					logger.info("Received SIGTERM. Closing server.");
 					s.close();
+					clearInterval(interval);
 				});
 			}),
 		)
