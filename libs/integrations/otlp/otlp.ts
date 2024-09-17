@@ -1,5 +1,5 @@
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
 import { TraceIdRatioBasedSampler } from "@opentelemetry/sdk-trace-base";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { Instrumentation } from "@opentelemetry/instrumentation";
@@ -13,7 +13,7 @@ import {
 interface OpenTelemetryConfig {
 	env: string;
 	apiName: string;
-	urls: { metrics: string; traces: string };
+	urls: { metrics: string; traces: string; logs: string };
 	instrumentations?: Instrumentation[];
 }
 
@@ -21,6 +21,8 @@ interface OpenTelemetryService {
 	start(): void;
 	shutdown(): Promise<void>;
 }
+
+const SAMPLER_RATIO = 0.75;
 
 export function opentelemetry(config: Readonly<OpenTelemetryConfig>): OpenTelemetryService {
 	const traceExporter = new OTLPTraceExporter({ url: config.urls.traces + "/v1/traces" });
@@ -31,7 +33,7 @@ export function opentelemetry(config: Readonly<OpenTelemetryConfig>): OpenTeleme
 		exportIntervalMillis: 1000 * 5,
 	});
 
-	const sampler = new TraceIdRatioBasedSampler(0.75);
+	const sampler = new TraceIdRatioBasedSampler(SAMPLER_RATIO);
 
 	return new NodeSDK({
 		traceExporter,
