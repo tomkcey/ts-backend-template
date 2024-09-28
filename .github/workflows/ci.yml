@@ -15,27 +15,13 @@ jobs:
         run: npm ci
       - name: Build application
         run: npm run build -- --sourceMap false
-      - name: List directory contents
-        run: ls -la .
-      - name: Set up containers
-        run: docker compose up rabbitmq minio postgresql -d --build
-      - name: Wait a moment for containers to properly start
-        run: sleep 10
       - name: Run tests
-        run: npm run test -- --coverage=false --verbose=false -o
+        run: |
+          docker compose up rabbitmq minio postgresql -d --build
+          sleep 10
+          npm run test -- --coverage=false --verbose=false
+          docker compose down
         env:
           APP_NAME: "test"
           NODE_ENV: "test"
           PORT: 8080
-      - name: Tear down containers
-        run: docker compose down
-      # - name: Run tests
-      #   run: |
-      #     docker compose --env-file "" up rabbitmq minio postgresql --build -d
-      #     sleep 10
-      #     npm run test -- --coverage=false --verbose=false -o
-      #     docker compose down
-      #   env:
-      #     APP_NAME: "test"
-      #     NODE_ENV: "test"
-      #     PORT: 8080
