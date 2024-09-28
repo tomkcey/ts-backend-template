@@ -1,5 +1,5 @@
 import { Logger } from "../../core/logging";
-import { createLogger, format, transports } from "winston";
+import { createLogger, format, transports, Logger as WinstonLogger } from "winston";
 
 const { combine, timestamp, json } = format;
 
@@ -9,8 +9,11 @@ const masterLogger = createLogger({
 	transports: [new transports.Console()],
 });
 
-export function getLogger(metadata: Record<string, unknown>): Logger {
-	const logger = masterLogger.child(metadata);
+export function getLogger(
+	metadata: Record<string, unknown>,
+	mutate: (logger: WinstonLogger) => WinstonLogger = (logger: WinstonLogger) => logger,
+): Logger {
+	const logger = mutate(masterLogger.child(metadata));
 
 	return {
 		info: logger.info.bind(logger),

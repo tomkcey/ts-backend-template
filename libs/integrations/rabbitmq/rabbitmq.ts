@@ -1,6 +1,6 @@
 import { Channel, connect, Connection, Options } from "amqplib";
-import { IBroker, IConsumer, IPublisher } from "../../../core/broker";
-import { isNil, isNotNil } from "../../../core/coersion";
+import { IBroker, IConsumer, IPublisher } from "../../core/broker";
+import { isNil, isNotNil } from "../../core/coersion";
 
 export type RouteMap = { readonly [K: string]: readonly string[] };
 type Exchange<R extends RouteMap> = keyof R extends string ? keyof R : never;

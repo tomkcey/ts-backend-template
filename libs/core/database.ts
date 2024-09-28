@@ -26,7 +26,7 @@ export abstract class BaseDatabase<
 	constructor(protected client: Client) {}
 
 	protected abstract map(row: Row): Output;
-	protected abstract unique(query: Query): Promise<Output>;
+	protected abstract unique(query: Query): Promise<Output | null>;
 	protected abstract list(query: Query): Promise<Output[]>;
 }
 

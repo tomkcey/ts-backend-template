@@ -12,14 +12,14 @@ jobs:
         with:
           node-version: "20.x"
       - name: Install dependencies
-        run: npm i
+        run: npm ci
       - name: Build application
         run: npm run build -- --sourceMap false
-      - name: Run tests -- --coverage=false --verbose=false -o
+      - name: Run tests
         run: |
-          docker compose up rabbitmq --build -d
-          sleep 5
-          npm run test
+          docker compose up rabbitmq minio postgresql -d --build
+          sleep 10
+          npm run test -- --coverage=false --verbose=false
           docker compose down
         env:
           APP_NAME: "test"

@@ -1,6 +1,7 @@
-import { BaseExecutor, AtomicExecutor, BaseDatabase } from "../../../core/database";
-import { Pool, PoolClient, PoolConfig, QueryResult } from "pg";
+import { BaseExecutor, AtomicExecutor, BaseDatabase } from "../../core/database";
+import { Pool, PoolClient, PoolConfig, QueryResult, QueryResultRow } from "pg";
 import { SQLStatement } from "sql-template-strings";
+import { isNil } from "../../core/coersion";
 
 class TransactionExecutor extends BaseExecutor<SQLStatement, QueryResult, PoolClient> {
 	constructor(client: PoolClient) {
@@ -52,16 +53,23 @@ export class PoolExecutor extends AtomicExecutor<SQLStatement, QueryResult, Pool
 
 export abstract class Database<
 	Output,
-	Executor extends TransactionExecutor = TransactionExecutor,
-> extends BaseDatabase<Output, SQLStatement, QueryResult, Executor> {
+	Executor extends BaseExecutor<SQLStatement, QueryResult> = BaseExecutor<
+		SQLStatement,
+		QueryResult
+	>,
+> extends BaseDatabase<Output, SQLStatement, QueryResultRow, Executor> {
 	constructor(executor: Executor) {
 		super(executor);
 	}
 
-	protected async unique(query: SQLStatement): Promise<Output> {
+	protected async unique(query: SQLStatement): Promise<Output | null> {
 		const { rows } = await this.client.execute(query);
 
 		const result = rows.at(0);
+		if (isNil(result)) {
+			return null;
+		}
+
 		return this.map(result);
 	}
 

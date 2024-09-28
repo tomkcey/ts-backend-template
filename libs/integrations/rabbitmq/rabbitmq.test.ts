@@ -1,5 +1,5 @@
-import { sleep } from "../../../core/async";
-import { Broker, Target } from "./amqp";
+import { sleep } from "../../core/async";
+import { Broker, Target } from "./rabbitmq";
 
 const ROUTING = { exchange: ["routing.key", "routing.dummy"] } as const;
 

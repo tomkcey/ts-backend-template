@@ -1,15 +1,27 @@
 services:
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #     target: server
-  #   ports:
-  #     - 8080:8080
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - jaeger
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server
+    ports:
+      - "8080:8080"
+    environment:
+      APP_NAME: web
+      PORT: 8080
+      NODE_ENV: dev
+      OTLP_TRACES_URL: http://collector:4317
+      OTLP_METRICS_URL: http://collector:4318
+      OTLP_LOGS_URL: http://collector:4318
+    depends_on:
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   # https://hub.docker.com/_/postgres
   postgresql:
@@ -26,17 +38,6 @@ services:
       timeout: 3s
       retries: 3
 
-  # https://hub.docker.com/r/valkey/valkey
-  valkey:
-    image: valkey/valkey:8.0-alpine
-    ports:
-      - 6379:6379
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgresql:
-        condition: service_healthy
-
   # https://hub.docker.com/_/rabbitmq
   rabbitmq:
     image: rabbitmq:3.13.7-management-alpine
@@ -52,6 +53,12 @@ services:
       timeout: 3s
       retries: 3
 
+  # https://hub.docker.com/r/valkey/valkey
+  valkey:
+    image: valkey/valkey:8.0-alpine
+    ports:
+      - 6379:6379
+
   # https://hub.docker.com/r/minio/minio
   minio:
     image: quay.io/minio/minio
@@ -62,50 +69,71 @@ services:
     ports:
       - 9000:9000
       - 9001:9001
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgresql:
-        condition: service_healthy
 
   # https://hub.docker.com/r/jaegertracing/all-in-one
   jaeger:
     image: jaegertracing/all-in-one
-    environment:
-      COLLECTOR_OTLP_ENABLED: true
+    restart: always
     ports:
-      - 16686:16686
-      - 14268:14268
-      - 14269:14269
-      - 14250:14250
-      - 9411:9411
-      - 6831:6831/udp
-      - 6832:6832/udp
-      - 5778:5778
-      - 4317:4317
-      - 4318:4318
+      - "16686:16686" # UI
+      - "14250:14250" # gRPC collector port
+      - "14268:14268" # HTTP collector port
+      - "14269:14269" # Healthcheck port
+      - "4317:4317" # HTTP OTLP Collector port
+      - "6831:6831/udp" # UDP port for agent
+      - "6832:6832/udp" # UDP port for agent
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgresql:
-        condition: service_healthy
+      collector:
+        condition: service_started
 
   # https://hub.docker.com/r/prom/prometheus
   prometheus:
     image: prom/prometheus
+    restart: always
     ports:
-      - 9090:9090
+      - "9090:9090" # UI
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./volumes/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
-      - jaeger
+      collector:
+        condition: service_started
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: --config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./volumes/loki/local-config.yaml:/etc/loki/local-config.yaml
+    depends_on:
+      collector:
+        condition: service_started
 
   # https://hub.docker.com/r/grafana/grafana
   grafana:
     image: grafana/grafana
+    restart: always
+    environment:
+      - GF_PROVISIONING_PATH=/etc/grafana/provisioning
     ports:
-      - 3000:3000
+      - "3000:3000" # UI
     volumes:
-      - ./grafana.ini:/etc/grafana/grafana.ini
+      - ./volumes/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./volumes/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
-      - prometheus
+      collector:
+        condition: service_started
+
+  # https://hub.docker.com/r/otel/opentelemetry-collector
+  collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    restart: always
+    volumes:
+      - ./volumes/otel-collector/otel-collector-config.yaml:/etc/otel-collector/otel-collector-config.yaml
+    command:
+      - --config=/etc/otel-collector/otel-collector-config.yaml
+    ports:
+      - "9464:9464" # Prometheus exporter port
+      - "13133:13133" # Healthcheck port
+      - "4318:4318" # HTTP OTLP Collector port
+      - "4317" # gRPC OTLP Collector port
